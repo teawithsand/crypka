@@ -103,8 +103,14 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 			}
 
 			err = chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-				tester.encryptAndDecryptData(chunks, nil, originalKey, parsedKey)
-				tester.encryptAndDecryptData(chunks, nil, parsedKey, originalKey)
+				err = tester.encryptAndDecryptData(chunks, nil, originalKey, parsedKey)
+				if err != nil {
+					return
+				}
+				err = tester.encryptAndDecryptData(chunks, nil, parsedKey, originalKey)
+				if err != nil {
+					return
+				}
 				return
 			})
 			if err != nil {

@@ -1,3 +1,12 @@
 package crypkatest
 
-var signTestChunkSizes = []int{0, 1, 2, 3, 5, 7, 1024 - 1, 1024, 1024 + 1}
+import "crypto/rand"
+
+var DefaultSignChunkRunner = &ChunkRunner{
+	Sizes: [][]int{
+		{}, {1}, {2}, {1024},
+		{1023, 1025},
+		{1024 * 4},
+	},
+	RNG: rand.Reader,
+}

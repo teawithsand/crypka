@@ -126,7 +126,7 @@ type Ed25519VerifyingKey struct {
 }
 
 func (vk *Ed25519VerifyingKey) MarshalToWriter(w io.Writer) (err error) {
-	_, err = w.Write(vk.VerifyingKey)
+	_, err = w.Write(vk.VerifyingKey[:])
 	return
 }
 

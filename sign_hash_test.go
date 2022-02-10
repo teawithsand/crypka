@@ -8,7 +8,7 @@ import (
 	"github.com/teawithsand/crypka/crypkatest"
 
 	// Makes sha256 available
-	"crypto/rand"
+
 	_ "crypto/sha256"
 )
 
@@ -19,7 +19,6 @@ func TestSign_Hash_WithSha256(t *testing.T) {
 
 	tester := crypkatest.SignSymmTester{
 		Algo: algo,
-		RNG:  rand.Reader,
 	}
 
 	tester.Test(t)

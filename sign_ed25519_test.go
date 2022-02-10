@@ -2,7 +2,6 @@ package crypka_test
 
 import (
 	"crypto"
-	"crypto/rand"
 	"testing"
 
 	"github.com/teawithsand/crypka"
@@ -27,13 +26,13 @@ func TestSign_Ed25519_WithSha256(t *testing.T) {
 
 	tester := crypkatest.SignAsymTester{
 		Algo: algo,
-		RNG:  rand.Reader,
 	}
 	tester.Test(t)
 }
 
 func TestSign_Ed25519_CanRegisterWithDefaultOptions(t *testing.T) {
 	reg := crypka.NewRegistry()
+	crypka.RegisterSTLHashes(reg)
 
 	crypka.RegisterEd25519(reg, crypka.RegisterEd25519Options{})
 }
@@ -53,7 +52,6 @@ func BenchmarkSign_Ed25519_WithSha256(b *testing.B) {
 
 	tester := crypkatest.SignAsymTester{
 		Algo: algo,
-		RNG:  rand.Reader,
 	}
 	tester.Benchmark(b)
 }

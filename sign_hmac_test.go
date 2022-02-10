@@ -2,7 +2,6 @@ package crypka_test
 
 import (
 	"crypto"
-	"crypto/rand"
 	"testing"
 
 	"github.com/teawithsand/crypka"
@@ -19,7 +18,6 @@ func TestSign_HMAC_WithSha256(t *testing.T) {
 
 	tester := crypkatest.SignSymmTester{
 		Algo: algo,
-		RNG:  rand.Reader,
 	}
 
 	tester.Test(t)

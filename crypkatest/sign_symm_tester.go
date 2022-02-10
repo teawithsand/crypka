@@ -2,126 +2,69 @@ package crypkatest
 
 import (
 	"errors"
-	"io"
 	"testing"
 
 	"github.com/teawithsand/crypka"
 )
 
 type SignSymmTester struct {
-	Algo           crypka.SignSymmAlgo
-	RNG            io.Reader
+	Algo        crypka.SignSymmAlgo
+	ChunkRunner *ChunkRunner
+
 	NotMarshalable bool
 }
 
+func (tester *SignSymmTester) signAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, sk crypka.SigningKey, vk crypka.VerifyingKey) (err error) {
+	if sk == nil {
+		sk, err = tester.Algo.GenerateKey(nil)
+		if err != nil {
+			return
+		}
+	}
+
+	if vk == nil {
+		vk, err = tester.Algo.GenerateKey(nil)
+		if err != nil {
+			return
+		}
+	}
+
+	return SignAndVerifyData(signerChunks, verifierChunks, sk, vk)
+}
+
 func (tester *SignSymmTester) Test(t *testing.T) {
-
-	signChunksWithDifferentKeys := func(
-		signerChunks [][]byte,
-		verifierChunks [][]byte,
-		sk crypka.SigningKey,
-		vk crypka.VerifyingKey,
-	) (err error) {
-		if sk == nil {
-			sk, err = tester.Algo.GenerateKey(nil)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-		}
-
-		if vk == nil {
-			vk, err = tester.Algo.GenerateKey(nil)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-		}
-
-		signer, err := sk.MakeSigner(nil)
-		if err != nil {
-			t.Error(err)
-		}
-
-		verifier, err := vk.MakeVerifier(nil)
-		if err != nil {
-			t.Error(err)
-		}
-
-		for _, data := range signerChunks {
-			_, err = signer.Write(data)
-			if err != nil {
-				return
-			}
-		}
-
-		sign, err := signer.Finalize(nil)
-		if err != nil {
-			return
-		}
-
-		for _, data := range verifierChunks {
-			_, err = verifier.Write(data)
-			if err != nil {
-				return
-			}
-		}
-
-		err = verifier.Verify(sign)
-		return
-	}
-
-	signChunksWithSameKey := func(signerChunks [][]byte, verifierChunks [][]byte) (err error) {
-		key, err := tester.Algo.GenerateKey(nil)
-		if err != nil {
-			t.Error(err)
-			return
-		}
-		return signChunksWithDifferentKeys(signerChunks, verifierChunks, key, key)
-	}
-
-	runWithSameChunks := func(t *testing.T, receiver func(buffers [][]byte) (err error)) {
-		for _, sz := range signTestChunkSizes {
-			buffers := RNGReadBuffers(tester.RNG, sz)
-			err := receiver(buffers)
-
-			if err != nil {
-				t.Error(err)
-				return
-			}
-		}
-	}
-
-	runWithDifferentChunks := func(t *testing.T, receiver func(lhsBuffers, rhsBuffers [][]byte) (err error)) {
-		for _, sz := range signTestChunkSizes {
-			lhsBuffers := RNGReadBuffers(tester.RNG, sz)
-			rhsBuffers := RNGReadBuffers(tester.RNG, sz)
-
-			if BuffersEqual(lhsBuffers, rhsBuffers) {
-				continue
-			}
-
-			err := receiver(lhsBuffers, rhsBuffers)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-		}
-	}
-
 	// TODO(teawithsand): implement more tests here
 
+	chunkRunner := tester.ChunkRunner
+	if chunkRunner == nil {
+		chunkRunner = DefaultSignChunkRunner
+	}
+
 	t.Run("valid_sign", func(t *testing.T) {
-		runWithSameChunks(t, func(chunks [][]byte) (err error) {
-			err = signChunksWithSameKey(chunks, chunks)
+		err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
+			key, err := tester.Algo.GenerateKey(nil)
+			if err != nil {
+				return
+			}
+
+			err = tester.signAndVerifyData(chunks, chunks, key, key)
 			return
 		})
+
+		if err != nil {
+			t.Error(err)
+		}
 	})
 
 	t.Run("invalid_sign", func(t *testing.T) {
 		t.Run("when_data_mismatch", func(t *testing.T) {
-			runWithDifferentChunks(t, func(lhs, rhs [][]byte) (err error) {
-				err = signChunksWithSameKey(lhs, rhs)
+			err := chunkRunner.runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
+				key, err := tester.Algo.GenerateKey(nil)
+				if err != nil {
+					return
+				}
+
+				err = tester.signAndVerifyData(lhs, rhs, key, key)
 				if err == nil {
 					err = errors.New("no error when data mismatch")
 				}
@@ -130,12 +73,16 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 				}
 				return
 			})
+
+			if err != nil {
+				t.Error(err)
+			}
 		})
 
 		if tester.Algo.GetInfo().Type != crypka.HashAlgorithmType {
 			t.Run("when_key_mistmatch", func(t *testing.T) {
-				runWithSameChunks(t, func(chunks [][]byte) (err error) {
-					err = signChunksWithDifferentKeys(chunks, chunks, nil, nil)
+				chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
+					err = tester.signAndVerifyData(chunks, chunks, nil, nil)
 					if err == nil {
 						err = errors.New("no error when key mismatch")
 					}
@@ -167,9 +114,24 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 				return
 			}
 
-			runWithSameChunks(t, func(buffers [][]byte) (err error) {
-				return signChunksWithDifferentKeys(buffers, buffers, parsedKey, key)
+			err = chunkRunner.RunWithSameChunks(func(buffers [][]byte) (err error) {
+				err = tester.signAndVerifyData(buffers, buffers, key, parsedKey)
+				if err != nil {
+					return
+				}
+
+				err = tester.signAndVerifyData(buffers, buffers, parsedKey, key)
+				if err != nil {
+					return
+				}
+
+				return
 			})
+
+			if err != nil {
+				t.Error(err)
+				return
+			}
 		})
 	}
 }
