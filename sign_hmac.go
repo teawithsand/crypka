@@ -123,22 +123,22 @@ func RegisterSTLHMACs(reg Registry, options RegisterSTLHMACsOptions) {
 		options.GenKeyLength = 0
 	}
 
-	reg.RegisterAlgo("sha-256-hmac", &HMACSignAlgorithm{
+	reg.RegisterAlgo("hmac-sha-256", &HMACSignAlgorithm{
 		Hash:         crypto.SHA256,
 		MinKeyLength: options.MinKeyLength,
 		GenKeyLength: options.GenKeyLength,
 	})
-	reg.RegisterAlgo("sha-512", &HMACSignAlgorithm{
+	reg.RegisterAlgo("hmac-sha-512", &HMACSignAlgorithm{
 		Hash:         crypto.SHA512,
 		MinKeyLength: options.MinKeyLength,
 		GenKeyLength: options.GenKeyLength,
 	})
-	reg.RegisterAlgo("sha3-256", &HMACSignAlgorithm{
+	reg.RegisterAlgo("hmac-sha3-256", &HMACSignAlgorithm{
 		Hash:         crypto.SHA3_256,
 		MinKeyLength: options.MinKeyLength,
 		GenKeyLength: options.GenKeyLength,
 	})
-	reg.RegisterAlgo("sha3-256", &HMACSignAlgorithm{
+	reg.RegisterAlgo("hmac-sha3-512", &HMACSignAlgorithm{
 		Hash:         crypto.SHA3_512,
 		MinKeyLength: options.MinKeyLength,
 		GenKeyLength: options.GenKeyLength,

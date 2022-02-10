@@ -4,6 +4,7 @@ import (
 	"crypto"
 	"crypto/hmac"
 	"hash"
+	"io"
 )
 
 // HashSignAlgorithm wraps golang's stl hash type and makes it crypka's hash types.
@@ -56,10 +57,18 @@ func (a *HashSignAlgorithm) GetInfo() SignAlgoInfo {
 }
 
 func (a *HashSignAlgorithm) GenerateKey(ctx KeyGenerationContext) (SymmSignKey, error) {
-	return &hashKey{}, nil
+	return &hashKey{
+		Hash: a.Hash,
+	}, nil
 }
 func (a *HashSignAlgorithm) ParseSymmSignKey(ctx KeyParseContext, data []byte) (SymmSignKey, error) {
-	return &hashKey{}, nil
+	return &hashKey{
+		Hash: a.Hash,
+	}, nil
+}
+
+func (sk *hashKey) MarshalToWriter(w io.Writer) (err error) {
+	return
 }
 
 // RegisterSTLHashes *some* of STL hashes into specified registry.
@@ -72,5 +81,5 @@ func RegisterSTLHashes(reg Registry) {
 	reg.RegisterAlgo("sha-256", &HashSignAlgorithm{crypto.SHA256})
 	reg.RegisterAlgo("sha-512", &HashSignAlgorithm{crypto.SHA512})
 	reg.RegisterAlgo("sha3-256", &HashSignAlgorithm{crypto.SHA3_256})
-	reg.RegisterAlgo("sha3-256", &HashSignAlgorithm{crypto.SHA3_512})
+	reg.RegisterAlgo("sha3-512", &HashSignAlgorithm{crypto.SHA3_512})
 }
