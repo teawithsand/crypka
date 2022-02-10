@@ -9,3 +9,5 @@ var ErrHMACKeyTooShort = errors.New("crypka: HMAC key too short")
 var ErrHMACKeyTooLong = errors.New("crypka: HMAC key too long")
 
 var ErrKeyNotMarshalable = errors.New("crypka: Key is not marshallable")
+
+var ErrDecryptionAuthFiled = errors.New("crypka: Authentication of decrypted text filed. Message has been modified")
