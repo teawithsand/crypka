@@ -57,9 +57,31 @@ type Decryptor interface {
 	Finalize() (err error)
 }
 
+type EncAuthMode uint8
+
+const (
+	// Algorithm provides no guarantees about validity of decrypted data.
+	NotAuthenticated EncAuthMode = 0
+
+	// Encrpytion algorithm guarantees that no modification of data occurred between encryption and decryption.
+	// Also, it gurantees that using invalid key will cause error.
+	//
+	// Error may be triggered instantly durign decrpytion call or during finalization phase.
+	LateSoftAuthenticated EncAuthMode = 1
+
+	// Just like LateSoftAuthenticated, but also guarantees that any truncation of stream is detected during finalization.
+	LateAuthenticated EncAuthMode = 2
+
+	// Just like EncAuthMode, but guarantees that decrypt will never return any modified data.
+	// So if any change was done, decrypt will report error instantly.
+	EagerAuthetnicated EncAuthMode = 3
+)
+
 type EncAlgoInfo struct {
 	BaseAlgorithmInfo
 	EncInfo
+
+	AuthMode EncAuthMode
 }
 
 type EncAlgo interface {
