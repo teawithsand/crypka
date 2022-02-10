@@ -41,11 +41,11 @@ func (a *HMACSignAlgorithm) GenerateKey(ctx KeyGenerationContext) (key SymmSignK
 
 func (a *HMACSignAlgorithm) ParseSymmSignKey(ctx KeyGenerationContext, data []byte) (key SymmSignKey, err error) {
 	if len(data) < a.MinKeyLength {
-		err = ErrHMACKeyTooShort
+		err = ErrKeyParseField
 		return
 	}
 	if len(data) > a.MaxKeyLength {
-		err = ErrHMACKeyTooLong
+		err = ErrKeyParseField
 		return
 	}
 
