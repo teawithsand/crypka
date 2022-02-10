@@ -50,6 +50,17 @@ func (reg *defaultRegistry) RegisterAlgo(name string, algo interface{}) {
 	reg.contents[name] = algo
 }
 
+func (reg *defaultRegistry) RegisterAlgoOverride(name string, algo interface{}) {
+	if atomic.LoadInt32(&reg.locked) != 0 {
+		panic("register already locked")
+	}
+
+	reg.lock.Lock()
+	defer reg.lock.Unlock()
+
+	reg.contents[name] = algo
+}
+
 func (reg *defaultRegistry) GetAlgo(name string) (algo interface{}) {
 	locked := atomic.LoadInt32(&reg.locked)
 	if locked != 0 {
