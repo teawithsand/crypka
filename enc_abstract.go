@@ -90,14 +90,14 @@ type EncSymmAlgo interface {
 }
 
 type EncSymmKeygen interface {
-	GenerateKey(ctx KeyGenerationContext) (SymmEncKey, error)
+	GenerateKey(ctx KeyGenerationContext) (EncSymmKey, error)
 }
 
 type EncSymmKeyParser interface {
-	ParseSymmEncKey(ctx KeyParseContext, data []byte) (SymmEncKey, error)
+	ParseSymmEncKey(ctx KeyParseContext, data []byte) (EncSymmKey, error)
 }
 
-type SymmEncKey interface {
+type EncSymmKey interface {
 	EncKey
 	DecKey
 }
