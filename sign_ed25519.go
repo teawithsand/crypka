@@ -39,24 +39,24 @@ func (a *Ed25519SignAsymAlgo) GenerateKeyPair(ctx KeyGenerationContext) (sk Sign
 		return
 	}
 
-	sk = &Ed25519SigningKey{
-		CompressSigningKey: CompressSigningKey{
+	sk = &ed25519SigningKey{
+		compressSigningKey: CompressSigningKey{
 			Compressor: a.Compressor,
 			ActualSigner: func(ctx KeyContext, data []byte) (sign []byte, err error) {
 				return innerActualSignEd25519(ctx, rawSk, data)
 			},
 		},
-		SigningKey: rawSk,
+		signingKey: rawSk,
 	}
 
-	vk = &Ed25519VerifyingKey{
-		CompressverifyingKey: CompressverifyingKey{
+	vk = &ed25519VerifyingKey{
+		compressVerifyingKey: CompressVerifyingKey{
 			Compressor: a.Compressor,
 			ActualVerifier: func(ctx KeyContext, sign, data []byte) (err error) {
 				return innerActualVerifyEd25519(ctx, rawVk, data, sign)
 			},
 		},
-		VerifyingKey: rawVk,
+		verifyingKey: rawVk,
 	}
 
 	return
@@ -73,14 +73,14 @@ func (a *Ed25519SignAsymAlgo) ParseSigningKey(ctx KeyParseContext, key []byte) (
 	rawSk := make(ed25519.PrivateKey, ed25519.PrivateKeySize)
 	copy(rawSk, key)
 
-	sk = &Ed25519SigningKey{
-		CompressSigningKey: CompressSigningKey{
+	sk = &ed25519SigningKey{
+		compressSigningKey: CompressSigningKey{
 			Compressor: a.Compressor,
 			ActualSigner: func(ctx KeyContext, data []byte) (sign []byte, err error) {
 				return innerActualSignEd25519(ctx, rawSk, data)
 			},
 		},
-		SigningKey: rawSk,
+		signingKey: rawSk,
 	}
 
 	return
@@ -97,36 +97,44 @@ func (a *Ed25519SignAsymAlgo) ParseVerifyingKey(ctx KeyParseContext, key []byte)
 	rawVk := make(ed25519.PublicKey, ed25519.PublicKeySize)
 	copy(rawVk, key)
 
-	vk = &Ed25519VerifyingKey{
-		CompressverifyingKey: CompressverifyingKey{
+	vk = &ed25519VerifyingKey{
+		compressVerifyingKey: CompressVerifyingKey{
 			Compressor: a.Compressor,
 			ActualVerifier: func(ctx KeyContext, sign, data []byte) (err error) {
 				return innerActualVerifyEd25519(ctx, rawVk, data, sign)
 			},
 		},
-		VerifyingKey: rawVk,
+		verifyingKey: rawVk,
 	}
 
 	return
 }
 
-type Ed25519SigningKey struct {
-	CompressSigningKey
-	SigningKey ed25519.PrivateKey
+type ed25519SigningKey struct {
+	compressSigningKey CompressSigningKey
+	signingKey         ed25519.PrivateKey
 }
 
-func (sk *Ed25519SigningKey) MarshalToWriter(w io.Writer) (err error) {
-	_, err = w.Write(sk.SigningKey)
+func (sk *ed25519SigningKey) MakeSigner(ctx KeyContext) (signer Signer, err error) {
+	return sk.compressSigningKey.MakeSigner(ctx)
+}
+
+func (sk *ed25519SigningKey) MarshalToWriter(w io.Writer) (err error) {
+	_, err = w.Write(sk.signingKey)
 	return
 }
 
-type Ed25519VerifyingKey struct {
-	CompressverifyingKey
-	VerifyingKey ed25519.PublicKey
+type ed25519VerifyingKey struct {
+	compressVerifyingKey CompressVerifyingKey
+	verifyingKey         ed25519.PublicKey
 }
 
-func (vk *Ed25519VerifyingKey) MarshalToWriter(w io.Writer) (err error) {
-	_, err = w.Write(vk.VerifyingKey[:])
+func (vk *ed25519VerifyingKey) MakeVerifier(ctx KeyContext) (verifier Verifier, err error) {
+	return vk.compressVerifyingKey.MakeVerifier(ctx)
+}
+
+func (vk *ed25519VerifyingKey) MarshalToWriter(w io.Writer) (err error) {
+	_, err = w.Write(vk.verifyingKey[:])
 	return
 }
 

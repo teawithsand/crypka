@@ -18,7 +18,7 @@ func (algo *XorEncSymmAlgo) GenerateKey(ctx KeyGenerationContext) (sk EncSymmKey
 		return
 	}
 
-	sk = &XorEncSymmKey{
+	sk = &xorEncSymmKey{
 		key: key,
 	}
 
@@ -52,47 +52,47 @@ func (algo *XorEncSymmAlgo) ParseSymmEncKey(ctx KeyParseContext, data []byte) (e
 	keyCopy := make([]byte, len(data))
 	copy(keyCopy, data)
 
-	ek = &XorEncSymmKey{
+	ek = &xorEncSymmKey{
 		key: keyCopy,
 	}
 	return
 }
 
-type XorEncSymmKey struct {
+type xorEncSymmKey struct {
 	key []byte
 }
 
-func (k *XorEncSymmKey) MarshalToWriter(w io.Writer) (err error) {
+func (k *xorEncSymmKey) MarshalToWriter(w io.Writer) (err error) {
 	_, err = w.Write(k.key)
 	return
 }
 
-func (k *XorEncSymmKey) MakeEncryptor(ctx KeyContext) (enc Encryptor, err error) {
-	enc = &XorSymmEncryptor{
+func (k *xorEncSymmKey) MakeEncryptor(ctx KeyContext) (enc Encryptor, err error) {
+	enc = &xorSymmEncryptor{
 		key: k.key,
 	}
 	return
 }
-func (k *XorEncSymmKey) MakeDecryptor(ctx KeyContext) (dec Decryptor, err error) {
-	dec = &XorSymmDecryptor{
+func (k *xorEncSymmKey) MakeDecryptor(ctx KeyContext) (dec Decryptor, err error) {
+	dec = &xorSymmDecryptor{
 		key: k.key,
 	}
 	return
 }
 
-type XorSymmEncryptor struct {
+type xorSymmEncryptor struct {
 	key []byte
 	pos int
 }
 
-func (xorED *XorSymmEncryptor) GetEncInfo() EncInfo {
+func (xorED *xorSymmEncryptor) GetEncInfo() EncInfo {
 	return EncInfo{
 		RequiresFinalization: false,
 		EncType:              EncTypeStream,
 	}
 }
 
-func (enc *XorSymmEncryptor) Encrypt(in, appendTo []byte) (res []byte, err error) {
+func (enc *xorSymmEncryptor) Encrypt(in, appendTo []byte) (res []byte, err error) {
 	res = appendTo
 
 	for _, b := range in {
@@ -103,24 +103,24 @@ func (enc *XorSymmEncryptor) Encrypt(in, appendTo []byte) (res []byte, err error
 	return
 }
 
-func (xorED *XorSymmEncryptor) Finalize(appendTo []byte) (res []byte, err error) {
+func (xorED *xorSymmEncryptor) Finalize(appendTo []byte) (res []byte, err error) {
 	res = appendTo
 	return
 }
 
-type XorSymmDecryptor struct {
+type xorSymmDecryptor struct {
 	key []byte
 	pos int
 }
 
-func (dec *XorSymmDecryptor) GetEncInfo() EncInfo {
+func (dec *xorSymmDecryptor) GetEncInfo() EncInfo {
 	return EncInfo{
 		RequiresFinalization: false,
 		EncType:              EncTypeStream,
 	}
 }
 
-func (xorED *XorSymmDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) {
+func (xorED *xorSymmDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) {
 	res = appendTo
 
 	for _, b := range in {
@@ -131,6 +131,6 @@ func (xorED *XorSymmDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 	return
 }
 
-func (xorED *XorSymmDecryptor) Finalize() (err error) {
+func (xorED *xorSymmDecryptor) Finalize() (err error) {
 	return
 }

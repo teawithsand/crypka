@@ -34,8 +34,8 @@ func (a *HMACSignAlgorithm) GenerateKey(ctx KeyGenerationContext) (key SymmSignK
 	}
 
 	return &hmacKey{
-		Hash: a.Hash,
-		Key:  keyBuf,
+		hash: a.Hash,
+		key:  keyBuf,
 	}, nil
 }
 
@@ -50,47 +50,47 @@ func (a *HMACSignAlgorithm) ParseSymmSignKey(ctx KeyGenerationContext, data []by
 	}
 
 	return &hmacKey{
-		Hash: a.Hash,
-		Key:  data,
+		hash: a.Hash,
+		key:  data,
 	}, nil
 }
 
 type hmacKey struct {
-	Hash crypto.Hash
-	Key  []byte
+	hash crypto.Hash
+	key  []byte
 }
 
 func (k *hmacKey) MakeSigner(key KeyContext) (Signer, error) {
 	return &hmacSignerVerifier{
-		Hash: hmac.New(k.Hash.New, k.Key),
+		hash: hmac.New(k.hash.New, k.key),
 	}, nil
 }
 
 func (k *hmacKey) MakeVerifier(key KeyContext) (Verifier, error) {
 	return &hmacSignerVerifier{
-		Hash: hmac.New(k.Hash.New, k.Key),
+		hash: hmac.New(k.hash.New, k.key),
 	}, nil
 }
 
 func (sk *hmacKey) MarshalToWriter(w io.Writer) (err error) {
-	_, err = w.Write(sk.Key)
+	_, err = w.Write(sk.key)
 	return
 }
 
 type hmacSignerVerifier struct {
-	Hash hash.Hash
+	hash hash.Hash
 }
 
 func (w *hmacSignerVerifier) Write(data []byte) (int, error) {
-	return w.Hash.Write(data)
+	return w.hash.Write(data)
 }
 
 func (w *hmacSignerVerifier) Finalize(appendTo []byte) (sign []byte, err error) {
-	return w.Hash.Sum(appendTo), nil
+	return w.hash.Sum(appendTo), nil
 }
 
 func (w *hmacSignerVerifier) Verify(sign []byte) (err error) {
-	validHMAC := w.Hash.Sum(nil)
+	validHMAC := w.hash.Sum(nil)
 	if !hmac.Equal(validHMAC, sign) {
 		err = ErrInvalidSign
 	}

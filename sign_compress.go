@@ -1,22 +1,22 @@
 package crypka
 
-type CompressSigner struct {
-	Ctx          KeyContext
-	Compressor   Signer
-	ActualSigner func(ctx KeyContext, data []byte) (sign []byte, err error)
+type compressSigner struct {
+	ctx          KeyContext
+	compressor   Signer
+	actualSigner func(ctx KeyContext, data []byte) (sign []byte, err error)
 }
 
-func (s *CompressSigner) Write(data []byte) (sz int, err error) {
-	return s.Compressor.Write(data)
+func (s *compressSigner) Write(data []byte) (sz int, err error) {
+	return s.compressor.Write(data)
 }
 
-func (s *CompressSigner) Finalize(appendTo []byte) (res []byte, err error) {
-	compressedData, err := s.Compressor.Finalize(nil)
+func (s *compressSigner) Finalize(appendTo []byte) (res []byte, err error) {
+	compressedData, err := s.compressor.Finalize(nil)
 	if err != nil {
 		return
 	}
 
-	return s.ActualSigner(s.Ctx, compressedData)
+	return s.actualSigner(s.ctx, compressedData)
 }
 
 type CompressVerifier struct {
@@ -49,19 +49,19 @@ func (k *CompressSigningKey) MakeSigner(ctx KeyContext) (signer Signer, err erro
 		return
 	}
 
-	return &CompressSigner{
-		Ctx:          ctx,
-		Compressor:   compressor,
-		ActualSigner: k.ActualSigner,
+	return &compressSigner{
+		ctx:          ctx,
+		compressor:   compressor,
+		actualSigner: k.ActualSigner,
 	}, nil
 }
 
-type CompressverifyingKey struct {
+type CompressVerifyingKey struct {
 	Compressor     SigningKey
 	ActualVerifier func(ctx KeyContext, sign, data []byte) (err error)
 }
 
-func (k *CompressverifyingKey) MakeVerifier(ctx KeyContext) (verifier Verifier, err error) {
+func (k *CompressVerifyingKey) MakeVerifier(ctx KeyContext) (verifier Verifier, err error) {
 	compressor, err := k.Compressor.MakeSigner(ctx)
 	if err != nil {
 		return

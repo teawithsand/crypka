@@ -13,7 +13,7 @@ type HashSignAlgorithm struct {
 }
 
 type hashKey struct {
-	Hash crypto.Hash
+	hash crypto.Hash
 }
 
 type hashSignerVerifier struct {
@@ -38,12 +38,12 @@ func (w *hashSignerVerifier) Verify(sign []byte) (err error) {
 
 func (k *hashKey) MakeSigner(key KeyContext) (Signer, error) {
 	return &hashSignerVerifier{
-		hash: k.Hash.New(),
+		hash: k.hash.New(),
 	}, nil
 }
 func (k *hashKey) MakeVerifier(key KeyContext) (Verifier, error) {
 	return &hashSignerVerifier{
-		hash: k.Hash.New(),
+		hash: k.hash.New(),
 	}, nil
 }
 
@@ -58,12 +58,12 @@ func (a *HashSignAlgorithm) GetInfo() SignAlgoInfo {
 
 func (a *HashSignAlgorithm) GenerateKey(ctx KeyGenerationContext) (SymmSignKey, error) {
 	return &hashKey{
-		Hash: a.Hash,
+		hash: a.Hash,
 	}, nil
 }
 func (a *HashSignAlgorithm) ParseSymmSignKey(ctx KeyParseContext, data []byte) (SymmSignKey, error) {
 	return &hashKey{
-		Hash: a.Hash,
+		hash: a.Hash,
 	}, nil
 }
 
