@@ -43,6 +43,11 @@ type EncInfo struct {
 	EncType              EncType
 }
 
+// Note: I've omitted decryption finalization, which requires last chunk(yielded by finalize)
+// to be passed separately to decryptor's finalize.
+// From my experience using this makes more bugs and adds more complexity to library than it's worth, especially
+// that in real world environment it's hardly ever the case.
+
 type Encryptor interface {
 	GetEncInfo() EncInfo
 
