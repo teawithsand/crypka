@@ -36,3 +36,4 @@ There is a couple of reasons:
  * Creating encryption algorithms from key exchange ones(especially from x25519)
  * Support for post quantumm algorithms
  * In general, support for more algorithms(like RSA for instance)
+ * Tests for safe serialization - even if key is serialized with json.Marshal it should leak no private data
