@@ -8,26 +8,56 @@ type DecKey interface {
 	MakeDecryptor(ctx KeyContext) (Decryptor, error)
 }
 
-// Encryptor is something capable of encrypting data.
-// It works in either chunk-by-chunk mode, where sizes of in argument during subsequent calls matter
-// and stream mode, which do not apply that restriction.
+// ENCRYPTOR STUFF //
+
+// Defines relations between subsequent call to Encrypt/Decrypt functions.
+// See specific types for more details.
+type EncType uint8
+
+const (
+	// Block encryption encrypts(decrypts) each block atomically.
+	// Blocks are independent of each other.
+	//
+	// Note: this should not be mistaken with block encryption from crypto world in general ie. fixed block size.
+	// This one is more like AEAD encryption(think of box/sealedbox from nacl)
+	EncTypeBlock EncType = 1
+
+	// This kind of encryption requires that chunks passed for decryption are passed in same order(it MAY NOT be checked however)
+	// that they were passed for encryption.
+	//
+	// Also no slicing is allowed. Each chunk yielded from encrypt must be passed in same and unmodified form to decrypt.
+	EncTypeChain EncType = 2
+
+	// It's just like EncTypeChain, but allows slicing. Passing partial chunks to decrypt is allowed.
+	EncTypeStream EncType = 3
+)
+
+// Note: this structure contains only basic information about encryption algorithm.
+// In particular kind and if it requires finalization.
 //
-// It handles all kinds of enctyptions: stream, block, AEAD and other kinds of encryption.
-// If finalization or something is required it's user responsibility to cast this to appropraite interface, which can handle that.
+// For more information about specified encryption scheme algorithm should be used.
+type EncInfo struct {
+	RequiresFinalization bool
+	EncType              EncType
+}
+
 type Encryptor interface {
+	GetEncInfo() EncInfo
+
 	Encrypt(in, appendTo []byte) (res []byte, err error)
+	Finalize(appendTo []byte) (res []byte, err error)
 }
 
-// Decryptor is able to reverse transformation done by Encryptor.
-// If finalization or something is required it's user responsibility to cast this to appropraite interface, which can handle that.
 type Decryptor interface {
-	Decrypt(in, appendTo []byte) (res []byte, err error)
-}
+	GetEncInfo() EncInfo
 
-// TODO(teawithsand): primitives for handling streamming encryption, like streamming encryptor/decryptor
+	Decrypt(in, appendTo []byte) (res []byte, err error)
+	Finalize() (err error)
+}
 
 type EncAlgoInfo struct {
 	BaseAlgorithmInfo
+	EncInfo
 }
 
 type EncAlgo interface {
