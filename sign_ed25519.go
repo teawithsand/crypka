@@ -17,13 +17,13 @@ func innerActualVerifyEd25519(ctx KeyContext, key ed25519.PublicKey, data, sign 
 	return
 }
 
-// Ed25519SignAlgorithm, which uses compressor given to prevent buffering data before signing.
+// Ed25519SignAsymAlgo, which uses compressor given to prevent buffering data before signing.
 // This allows for easier signing of arbitrarily sized data.
-type Ed25519SignAlgorithm struct {
+type Ed25519SignAsymAlgo struct {
 	Compressor SigningKey
 }
 
-func (a *Ed25519SignAlgorithm) GetInfo() SignAlgoInfo {
+func (a *Ed25519SignAsymAlgo) GetInfo() SignAlgoInfo {
 	return SignAlgoInfo{
 		BaseAlgorithmInfo: BaseAlgorithmInfo{
 			Type:     AsymSignAlgorithmType,
@@ -32,7 +32,7 @@ func (a *Ed25519SignAlgorithm) GetInfo() SignAlgoInfo {
 	}
 }
 
-func (a *Ed25519SignAlgorithm) GenerateKeyPair(ctx KeyGenerationContext) (sk SigningKey, vk VerifyingKey, err error) {
+func (a *Ed25519SignAsymAlgo) GenerateKeyPair(ctx KeyGenerationContext) (sk SigningKey, vk VerifyingKey, err error) {
 	rng := ContextGetRNG(ctx)
 	rawVk, rawSk, err := ed25519.GenerateKey(rng)
 	if err != nil {
@@ -62,7 +62,7 @@ func (a *Ed25519SignAlgorithm) GenerateKeyPair(ctx KeyGenerationContext) (sk Sig
 	return
 }
 
-func (a *Ed25519SignAlgorithm) ParseSigningKey(ctx KeyParseContext, key []byte) (sk SigningKey, err error) {
+func (a *Ed25519SignAsymAlgo) ParseSigningKey(ctx KeyParseContext, key []byte) (sk SigningKey, err error) {
 	if len(key) != ed25519.PrivateKeySize {
 		err = ErrKeyParseField
 		return
@@ -86,7 +86,7 @@ func (a *Ed25519SignAlgorithm) ParseSigningKey(ctx KeyParseContext, key []byte) 
 	return
 }
 
-func (a *Ed25519SignAlgorithm) ParseVerifyingKey(ctx KeyParseContext, key []byte) (vk VerifyingKey, err error) {
+func (a *Ed25519SignAsymAlgo) ParseVerifyingKey(ctx KeyParseContext, key []byte) (vk VerifyingKey, err error) {
 	if len(key) != ed25519.PublicKeySize {
 		err = ErrKeyParseField
 		return
@@ -183,7 +183,7 @@ func RegisterEd25519(reg Registry, options RegisterEd25519Options) {
 			config.Compressor = key
 		}
 
-		reg.RegisterAlgo("ed25519-"+config.Suffix, Ed25519SignAlgorithm{
+		reg.RegisterAlgo("ed25519-"+config.Suffix, Ed25519SignAsymAlgo{
 			Compressor: config.Compressor,
 		})
 	}

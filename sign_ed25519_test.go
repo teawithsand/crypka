@@ -21,7 +21,7 @@ func TestSign_Ed25519_WithSha256(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	algo := &crypka.Ed25519SignAlgorithm{
+	algo := &crypka.Ed25519SignAsymAlgo{
 		Compressor: compressor,
 	}
 
@@ -47,7 +47,7 @@ func BenchmarkSign_Ed25519_WithSha256(b *testing.B) {
 		b.Error(err)
 		return
 	}
-	algo := &crypka.Ed25519SignAlgorithm{
+	algo := &crypka.Ed25519SignAsymAlgo{
 		Compressor: compressor,
 	}
 
