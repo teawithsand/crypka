@@ -35,6 +35,8 @@ const (
 // Note: this structure contains only basic information about encryption algorithm.
 // In particular kind and if it requires finalization.
 //
+// Note #2: this structure should contain only data, which is required to run encryption properly.
+//
 // For more information about specified encryption scheme algorithm should be used.
 type EncInfo struct {
 	RequiresFinalization bool
