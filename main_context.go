@@ -8,6 +8,7 @@ import (
 type KeyContext = *Context
 type KeyGenerationContext = *Context
 type KeyParseContext = *Context
+type AnyContext = *Context
 
 type Context struct {
 	RNG              io.Reader
