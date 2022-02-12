@@ -10,7 +10,7 @@ import (
 
 var ErrTestingEncrpytedDecryptedMismatch = errors.New("crypka/crypkatest: encrypted and decrpyted data mismatch")
 
-func EncryptAndDecryptData(chunks [][]byte, rdSizes []int, ek crypka.EncKey, dk crypka.DecKey) (err error) {
+func EncryptAndDecryptStreamData(chunks [][]byte, rdSizes []int, ek crypka.EncKey, dk crypka.DecKey) (err error) {
 	enc, err := ek.MakeEncryptor(nil)
 	if err != nil {
 		return
@@ -83,3 +83,38 @@ func EncryptAndDecryptData(chunks [][]byte, rdSizes []int, ek crypka.EncKey, dk 
 
 	return
 }
+
+func EncryptAndDecryptChainData(chunks [][]byte, ek crypka.EncKey, dk crypka.DecKey) (err error) {
+	enc, err := ek.MakeEncryptor(nil)
+	if err != nil {
+		return
+	}
+	dec, err := dk.MakeDecryptor(nil)
+	if err != nil {
+		return
+	}
+
+	for _, chunk := range chunks {
+		var encryptedChunk []byte
+		var decryptedChunk []byte
+
+		encryptedChunk, err = enc.Encrypt(chunk, nil)
+		if err != nil {
+			return
+		}
+
+		decryptedChunk, err = dec.Decrypt(encryptedChunk, nil)
+		if err != nil {
+			return
+		}
+
+		if !bytes.Equal(chunk, decryptedChunk) {
+			err = ErrTestingEncrpytedDecryptedMismatch
+			return
+		}
+	}
+
+	return
+}
+
+// TODO(teawithsand): fuzz test for block decryptor being able to decrypt block at random
