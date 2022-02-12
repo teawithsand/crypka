@@ -42,6 +42,7 @@ func (config *NonceConfig) MakeNonceManager(ctx KeyContext, length int) (nm Nonc
 		rngManager := &RNGNonceManager{
 			Nonce:  make([]byte, length),
 			Unsafe: config.AllowUnsafe,
+			RNG:    ContextGetRNG(ctx),
 		}
 		err = rngManager.Initialize()
 		if err != nil {
