@@ -37,3 +37,4 @@ There is a couple of reasons:
  * Support for post quantumm algorithms
  * In general, support for more algorithms(like RSA for instance)
  * Tests for safe serialization - even if key is serialized with json.Marshal it should leak no private data
+ * Support for AEAD + PRNG generated nonces, which are not embedded
