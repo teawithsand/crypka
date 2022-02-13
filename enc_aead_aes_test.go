@@ -9,7 +9,13 @@ import (
 	"github.com/teawithsand/crypka/crypkatest"
 )
 
-func TestEnc_AEAD_WithAES128GCM(t *testing.T) {
+func TesEnc_AES128GCM_CanRegister(t *testing.T) {
+	reg := crypka.NewRegistry()
+
+	crypka.RegisterAES128GCM(reg)
+}
+
+func TestEnc_AES128GCM(t *testing.T) {
 	aeadFactory := func(key []byte) (aead cipher.AEAD, err error) {
 		block, err := aes.NewCipher(key)
 		if err != nil {
