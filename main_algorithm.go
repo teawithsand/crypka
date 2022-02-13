@@ -8,6 +8,7 @@ const (
 	HashAlgorithmType     AlgorithmType = 3
 	SymmSignAlgorithmType AlgorithmType = 4
 	AsymSignAlgorithmType AlgorithmType = 5
+	RNGAlgorithmType      AlgorithmType = 6
 )
 
 type BaseAlgorithmInfo struct {

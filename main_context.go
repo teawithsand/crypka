@@ -8,6 +8,8 @@ import (
 type KeyContext = *Context
 type KeyGenerationContext = *Context
 type KeyParseContext = *Context
+type RNGGenerationContext = *Context
+
 type AnyContext = *Context
 
 type Context struct {
