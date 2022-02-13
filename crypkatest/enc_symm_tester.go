@@ -8,8 +8,7 @@ import (
 )
 
 type EncSymmTester struct {
-	Algo        crypka.EncSymmAlgo
-	ChunkRunner *ChunkRunner
+	Algo crypka.EncSymmAlgo
 	TestScopeUtil
 
 	NotMarshalable bool

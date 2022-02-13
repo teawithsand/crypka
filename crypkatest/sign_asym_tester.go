@@ -8,9 +8,7 @@ import (
 )
 
 type SignAsymTester struct {
-	Algo        crypka.SignAsymAlgo
-	ChunkRunner *ChunkRunner
-
+	Algo crypka.SignAsymAlgo
 	TestScopeUtil
 
 	NotMarshalable bool
