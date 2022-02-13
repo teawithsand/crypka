@@ -15,7 +15,7 @@ func TestSign_Ed25519_WithSha256(t *testing.T) {
 	compressorAlgo := crypka.HashSignAlgorithm{
 		Hash: crypto.SHA256,
 	}
-	compressor, err := compressorAlgo.GenerateKey(nil)
+	compressor, err := compressorAlgo.GenerateKey(nil, nil)
 	if err != nil {
 		t.Error(err)
 		return
@@ -41,7 +41,7 @@ func BenchmarkSign_Ed25519_WithSha256(b *testing.B) {
 	compressorAlgo := crypka.HashSignAlgorithm{
 		Hash: crypto.SHA256,
 	}
-	compressor, err := compressorAlgo.GenerateKey(nil)
+	compressor, err := compressorAlgo.GenerateKey(nil, nil)
 	if err != nil {
 		b.Error(err)
 		return

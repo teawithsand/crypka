@@ -3,6 +3,8 @@ package crypkatest
 import (
 	"bytes"
 	"io"
+
+	"github.com/teawithsand/crypka"
 )
 
 func RNGReadBuffer(rng io.Reader, sz int) []byte {
@@ -35,11 +37,20 @@ func BuffersEqual(lhs, rhs [][]byte) bool {
 	return true
 }
 
-type ChunkRunner struct {
+type ChunkRunnerConfig struct {
 	Sizes                   [][]int
 	SameBufferPresets       [][][]byte
 	DifferentBuffersPresets [][2][][]byte
-	RNG                     io.Reader
+}
+
+func (crc ChunkRunnerConfig) IsEmpty() bool {
+	return len(crc.Sizes) == 0 && len(crc.SameBufferPresets) == 0 && len(crc.DifferentBuffersPresets) == 0
+}
+
+// TODO(teawithsand): refactor it in sope of RNGUtil
+type ChunkRunner struct {
+	ChunkRunnerConfig
+	RNG crypka.RNG
 }
 
 func (cr *ChunkRunner) RunWithSameChunks(handler func(chunks [][]byte) (err error)) (err error) {

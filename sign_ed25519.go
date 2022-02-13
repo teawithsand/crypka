@@ -32,8 +32,9 @@ func (a *Ed25519SignAsymAlgo) GetInfo() SignAlgoInfo {
 	}
 }
 
-func (a *Ed25519SignAsymAlgo) GenerateKeyPair(ctx KeyGenerationContext) (sk SigningKey, vk VerifyingKey, err error) {
-	rng := ContextGetRNG(ctx)
+func (a *Ed25519SignAsymAlgo) GenerateKeyPair(ctx KeyGenerationContext, rng RNG) (sk SigningKey, vk VerifyingKey, err error) {
+	rng = FallbackContextGetRNG(ctx, rng)
+
 	rawVk, rawSk, err := ed25519.GenerateKey(rng)
 	if err != nil {
 		return
@@ -183,7 +184,7 @@ func RegisterEd25519(reg Registry, options RegisterEd25519Options) {
 				continue
 			}
 
-			key, innerErr := signingAlgo.GenerateKey(nil)
+			key, innerErr := signingAlgo.GenerateKey(nil, nil)
 			if innerErr != nil {
 				continue
 			}

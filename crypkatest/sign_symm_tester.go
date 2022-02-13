@@ -8,46 +8,45 @@ import (
 )
 
 type SignSymmTester struct {
-	Algo        crypka.SignSymmAlgo
-	ChunkRunner *ChunkRunner
+	Algo crypka.SignSymmAlgo
+	TestScopeUtil
 
 	NotMarshalable bool
 }
 
-func (tester *SignSymmTester) signAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, sk crypka.SigningKey, vk crypka.VerifyingKey) (err error) {
-	if sk == nil {
-		sk, err = tester.Algo.GenerateKey(nil)
-		if err != nil {
-			return
-		}
+func (tester *SignSymmTester) init() {
+	if tester.TestScopeUtil.ChunkRunnerConfig.IsEmpty() {
+		tester.TestScopeUtil.ChunkRunnerConfig = DefaultSignChunkRunnerConfig
+	}
+}
+
+func (tester *SignSymmTester) signAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, bag SignKeyBag) (err error) {
+	err = bag.EnsureValidSymm(tester.Algo)
+	if err != nil {
+		return
 	}
 
-	if vk == nil {
-		vk, err = tester.Algo.GenerateKey(nil)
-		if err != nil {
-			return
-		}
-	}
-
-	return SignAndVerifyData(signerChunks, verifierChunks, sk, vk)
+	return SignAndVerifyData(signerChunks, verifierChunks, bag)
 }
 
 func (tester *SignSymmTester) Test(t *testing.T) {
+	tester.init()
+
 	// TODO(teawithsand): implement more tests here
 
-	chunkRunner := tester.ChunkRunner
-	if chunkRunner == nil {
-		chunkRunner = DefaultSignChunkRunner
-	}
-
 	t.Run("valid_sign", func(t *testing.T) {
-		err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-			key, err := tester.Algo.GenerateKey(nil)
+		scope := tester.TestScopeUtil.GetTestScope()
+
+		err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+			key, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 			if err != nil {
 				return
 			}
 
-			err = tester.signAndVerifyData(chunks, chunks, key, key)
+			err = tester.signAndVerifyData(chunks, chunks, SignKeyBag{
+				SignKey: key,
+				VerKey:  key,
+			})
 			return
 		})
 
@@ -58,13 +57,18 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 
 	t.Run("invalid_sign", func(t *testing.T) {
 		t.Run("when_data_mismatch", func(t *testing.T) {
-			err := chunkRunner.runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
-				key, err := tester.Algo.GenerateKey(nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			err := scope.GetChunkRunner().runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
+				key, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 				if err != nil {
 					return
 				}
 
-				err = tester.signAndVerifyData(lhs, rhs, key, key)
+				err = tester.signAndVerifyData(lhs, rhs, SignKeyBag{
+					SignKey: key,
+					VerKey:  key,
+				})
 				if err == nil {
 					err = errors.New("no error when data mismatch")
 				}
@@ -81,8 +85,12 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 
 		if tester.Algo.GetInfo().Type != crypka.HashAlgorithmType {
 			t.Run("when_key_mistmatch", func(t *testing.T) {
-				chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-					err = tester.signAndVerifyData(chunks, chunks, nil, nil)
+				scope := tester.TestScopeUtil.GetTestScope()
+
+				scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					err = tester.signAndVerifyData(chunks, chunks, SignKeyBag{
+						BaseBag: scope.GetBaseBag(),
+					})
 					if err == nil {
 						err = errors.New("no error when key mismatch")
 					}
@@ -97,7 +105,9 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 
 	if !tester.NotMarshalable {
 		t.Run("can_marshal_symm_signing_key", func(t *testing.T) {
-			key, err := tester.Algo.GenerateKey(nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			key, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 			if err != nil {
 				t.Error(err)
 				return
@@ -114,13 +124,19 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 				return
 			}
 
-			err = chunkRunner.RunWithSameChunks(func(buffers [][]byte) (err error) {
-				err = tester.signAndVerifyData(buffers, buffers, key, parsedKey)
+			err = scope.GetChunkRunner().RunWithSameChunks(func(buffers [][]byte) (err error) {
+				err = tester.signAndVerifyData(buffers, buffers, SignKeyBag{
+					SignKey: key,
+					VerKey:  parsedKey,
+				})
 				if err != nil {
 					return
 				}
 
-				err = tester.signAndVerifyData(buffers, buffers, parsedKey, key)
+				err = tester.signAndVerifyData(buffers, buffers, SignKeyBag{
+					SignKey: parsedKey,
+					VerKey:  key,
+				})
 				if err != nil {
 					return
 				}

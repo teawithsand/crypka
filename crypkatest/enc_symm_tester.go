@@ -10,6 +10,7 @@ import (
 type EncSymmTester struct {
 	Algo        crypka.EncSymmAlgo
 	ChunkRunner *ChunkRunner
+	TestScopeUtil
 
 	NotMarshalable bool
 }
@@ -29,54 +30,50 @@ type EncSymmTester struct {
 	}
 */
 
-func (tester *EncSymmTester) encryptAndDecryptStreamData(chunks [][]byte, rdSizes []int, ek crypka.EncKey, dk crypka.DecKey) (err error) {
-	if ek == nil {
-		ek, err = tester.Algo.GenerateKey(nil)
-		if err != nil {
-			return
-		}
+func (tester *EncSymmTester) init() {
+	if tester.TestScopeUtil.ChunkRunnerConfig.IsEmpty() {
+		tester.TestScopeUtil.ChunkRunnerConfig = DefaultEncChunkRunnerConfig
 	}
-	if dk == nil {
-		dk, err = tester.Algo.GenerateKey(nil)
-		if err != nil {
-			return
-		}
-	}
-	return EncryptAndDecryptStreamData(chunks, rdSizes, ek, dk)
 }
 
-func (tester *EncSymmTester) encryptAndDecryptChainData(chunks [][]byte, ek crypka.EncKey, dk crypka.DecKey) (err error) {
-	if ek == nil {
-		ek, err = tester.Algo.GenerateKey(nil)
-		if err != nil {
-			return
-		}
+func (tester *EncSymmTester) encryptAndDecryptStreamData(
+	chunks [][]byte,
+	rdSizes []int,
+	bag EncKeyBag,
+) (err error) {
+	err = bag.EnsureValidSymm(tester.Algo)
+	if err != nil {
+		return
 	}
-	if dk == nil {
-		dk, err = tester.Algo.GenerateKey(nil)
-		if err != nil {
-			return
-		}
+	return EncryptAndDecryptStreamData(chunks, rdSizes, bag)
+}
+
+func (tester *EncSymmTester) encryptAndDecryptChainData(chunks [][]byte, bag EncKeyBag) (err error) {
+	err = bag.EnsureValidSymm(tester.Algo)
+	if err != nil {
+		return
 	}
-	return EncryptAndDecryptChainData(chunks, ek, dk)
+	return EncryptAndDecryptChainData(chunks, bag)
 }
 
 func (tester *EncSymmTester) Test(t *testing.T) {
-	chunkRunner := tester.ChunkRunner
-	if chunkRunner == nil {
-		chunkRunner = DefaultEncChunkRunner
-	}
+	tester.init()
 
 	if tester.Algo.GetInfo().EncType == crypka.EncTypeStream {
 		t.Run("enc_stream", func(t *testing.T) {
 			t.Run("valid_encryption", func(t *testing.T) {
-				err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-					ek, err := tester.Algo.GenerateKey(nil)
+				scope := tester.TestScopeUtil.GetTestScope()
+
+				err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					ek, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 					if err != nil {
 						return
 					}
 
-					err = tester.encryptAndDecryptStreamData(chunks, nil, ek, ek)
+					err = tester.encryptAndDecryptStreamData(chunks, nil, EncKeyBag{
+						EncKey: ek,
+						DecKey: ek,
+					})
 					return
 				})
 				if err != nil {
@@ -85,8 +82,12 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 			})
 
 			t.Run("invalid_when_key_mistmatch", func(t *testing.T) {
-				err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-					err = tester.encryptAndDecryptStreamData(chunks, nil, nil, nil)
+				scope := tester.TestScopeUtil.GetTestScope()
+
+				err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					err = tester.encryptAndDecryptStreamData(chunks, nil, EncKeyBag{
+						BaseBag: scope.GetBaseBag(),
+					})
 					return
 				})
 
@@ -106,13 +107,18 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 	{
 		t.Run("enc_chain", func(t *testing.T) {
 			t.Run("valid_encryption", func(t *testing.T) {
-				err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-					ek, err := tester.Algo.GenerateKey(nil)
+				scope := tester.TestScopeUtil.GetTestScope()
+
+				err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					ek, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 					if err != nil {
 						return
 					}
 
-					err = tester.encryptAndDecryptChainData(chunks, ek, ek)
+					err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
+						EncKey: ek,
+						DecKey: ek,
+					})
 					return
 				})
 				if err != nil {
@@ -121,8 +127,12 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 			})
 
 			t.Run("invalid_when_key_mistmatch", func(t *testing.T) {
-				err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-					err = tester.encryptAndDecryptChainData(chunks, nil, nil)
+				scope := tester.TestScopeUtil.GetTestScope()
+
+				err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
+						BaseBag: scope.GetBaseBag(),
+					})
 					return
 				})
 
@@ -141,7 +151,9 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 
 	if !tester.NotMarshalable {
 		t.Run("can_marshal_symm_signing_key__chain_test", func(t *testing.T) {
-			originalKey, err := tester.Algo.GenerateKey(nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			originalKey, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 			if err != nil {
 				t.Error(err)
 				return
@@ -158,12 +170,18 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 				return
 			}
 
-			err = chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-				err = tester.encryptAndDecryptChainData(chunks, originalKey, parsedKey)
+			err = scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+				err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
+					EncKey: originalKey,
+					DecKey: parsedKey,
+				})
 				if err != nil {
 					return
 				}
-				err = tester.encryptAndDecryptChainData(chunks, parsedKey, originalKey)
+				err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
+					EncKey: parsedKey,
+					DecKey: originalKey,
+				})
 				if err != nil {
 					return
 				}

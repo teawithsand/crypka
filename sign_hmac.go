@@ -24,10 +24,10 @@ func (a *HMACSignAlgorithm) GetInfo() SignAlgoInfo {
 	}
 }
 
-func (a *HMACSignAlgorithm) GenerateKey(ctx KeyGenerationContext) (key SymmSignKey, err error) {
+func (a *HMACSignAlgorithm) GenerateKey(ctx KeyGenerationContext, rng RNG) (key SymmSignKey, err error) {
 	keyBuf := make([]byte, a.GenKeyLength)
 
-	rng := ContextGetRNG(ctx)
+	rng = FallbackContextGetRNG(ctx, rng)
 	_, err = io.ReadFull(rng, keyBuf)
 	if err != nil {
 		return

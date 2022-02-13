@@ -10,9 +10,10 @@ type XorEncSymmAlgo struct {
 	GenerateKeyLength int
 }
 
-func (algo *XorEncSymmAlgo) GenerateKey(ctx KeyGenerationContext) (sk EncSymmKey, err error) {
+func (algo *XorEncSymmAlgo) GenerateKey(ctx KeyGenerationContext, rng RNG) (sk EncSymmKey, err error) {
+	rng = FallbackContextGetRNG(ctx, rng)
+
 	key := make([]byte, algo.GenerateKeyLength)
-	rng := ContextGetRNG(ctx)
 	_, err = io.ReadFull(rng, key)
 	if err != nil {
 		return

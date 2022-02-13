@@ -39,7 +39,7 @@ type SignAsymAlgo interface {
 }
 
 type SignAsymKeyGen interface {
-	GenerateKeyPair(ctx KeyGenerationContext) (SigningKey, VerifyingKey, error)
+	GenerateKeyPair(ctx KeyGenerationContext, rng RNG) (SigningKey, VerifyingKey, error)
 }
 
 type SignAsymKeyParser interface {
@@ -56,7 +56,7 @@ type SignSymmAlgo interface {
 }
 
 type SignSymmKeyGen interface {
-	GenerateKey(ctx KeyGenerationContext) (SymmSignKey, error)
+	GenerateKey(ctx KeyGenerationContext, rng RNG) (SymmSignKey, error)
 }
 
 type SignSymmKeyParser interface {

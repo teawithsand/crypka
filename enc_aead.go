@@ -24,9 +24,9 @@ func (algo *AEADSymmEncAlgo) makeKey(ctx AnyContext, data []byte) (key *aeadSymm
 	return
 }
 
-func (algo *AEADSymmEncAlgo) GenerateKey(ctx KeyGenerationContext) (key EncSymmKey, err error) {
+func (algo *AEADSymmEncAlgo) GenerateKey(ctx KeyGenerationContext, rng RNG) (key EncSymmKey, err error) {
 	data := make([]byte, algo.KeyLength)
-	rng := ContextGetRNG(ctx)
+	rng = FallbackContextGetRNG(ctx, rng)
 	_, err = io.ReadFull(rng, data)
 	if err != nil {
 		return

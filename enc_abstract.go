@@ -102,7 +102,7 @@ type EncAsymAlgo interface {
 }
 
 type EncAsymKeygen interface {
-	GenerateKeyPair(ctx KeyGenerationContext) (EncKey, DecKey, error)
+	GenerateKeyPair(ctx KeyGenerationContext, rng RNG) (EncKey, DecKey, error)
 }
 
 type EncAsymKeyParser interface {
@@ -119,7 +119,7 @@ type EncSymmAlgo interface {
 }
 
 type EncSymmKeygen interface {
-	GenerateKey(ctx KeyGenerationContext) (EncSymmKey, error)
+	GenerateKey(ctx KeyGenerationContext, rng RNG) (EncSymmKey, error)
 }
 
 type EncSymmKeyParser interface {

@@ -4,18 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"io"
-
-	"github.com/teawithsand/crypka"
 )
 
 var ErrTestingEncrpytedDecryptedMismatch = errors.New("crypka/crypkatest: encrypted and decrpyted data mismatch")
 
-func EncryptAndDecryptStreamData(chunks [][]byte, rdSizes []int, ek crypka.EncKey, dk crypka.DecKey) (err error) {
-	enc, err := ek.MakeEncryptor(nil)
+func EncryptAndDecryptStreamData(chunks [][]byte, rdSizes []int, bag EncKeyBag) (err error) {
+	enc, err := bag.EncKey.MakeEncryptor(nil)
 	if err != nil {
 		return
 	}
-	dec, err := dk.MakeDecryptor(nil)
+	dec, err := bag.DecKey.MakeDecryptor(nil)
 	if err != nil {
 		return
 	}
@@ -84,12 +82,12 @@ func EncryptAndDecryptStreamData(chunks [][]byte, rdSizes []int, ek crypka.EncKe
 	return
 }
 
-func EncryptAndDecryptChainData(chunks [][]byte, ek crypka.EncKey, dk crypka.DecKey) (err error) {
-	enc, err := ek.MakeEncryptor(nil)
+func EncryptAndDecryptChainData(chunks [][]byte, bag EncKeyBag) (err error) {
+	enc, err := bag.EncKey.MakeEncryptor(nil)
 	if err != nil {
 		return
 	}
-	dec, err := dk.MakeDecryptor(nil)
+	dec, err := bag.DecKey.MakeDecryptor(nil)
 	if err != nil {
 		return
 	}

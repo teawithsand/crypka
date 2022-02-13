@@ -11,43 +11,43 @@ type SignAsymTester struct {
 	Algo        crypka.SignAsymAlgo
 	ChunkRunner *ChunkRunner
 
+	TestScopeUtil
+
 	NotMarshalable bool
 }
 
-func (tester *SignAsymTester) signAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, sk crypka.SigningKey, vk crypka.VerifyingKey) (err error) {
-	if sk == nil {
-		sk, _, err = tester.Algo.GenerateKeyPair(nil)
-		if err != nil {
-			return
-		}
+func (tester *SignAsymTester) init() {
+	if tester.TestScopeUtil.ChunkRunnerConfig.IsEmpty() {
+		tester.TestScopeUtil.ChunkRunnerConfig = DefaultSignChunkRunnerConfig
 	}
+}
 
-	if vk == nil {
-		_, vk, err = tester.Algo.GenerateKeyPair(nil)
-		if err != nil {
-			return
-		}
+func (tester *SignAsymTester) signAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, bag SignKeyBag) (err error) {
+	err = bag.EnsureValidAsym(tester.Algo)
+	if err != nil {
+		return
 	}
-
-	return SignAndVerifyData(signerChunks, verifierChunks, sk, vk)
+	return SignAndVerifyData(signerChunks, verifierChunks, bag)
 }
 
 func (tester *SignAsymTester) Test(t *testing.T) {
+	tester.init()
+
 	// TODO(teawithsand): implement more tests here
 
-	chunkRunner := tester.ChunkRunner
-	if chunkRunner == nil {
-		chunkRunner = DefaultSignChunkRunner
-	}
-
 	t.Run("valid_sign", func(t *testing.T) {
-		err := chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-			sk, vk, err := tester.Algo.GenerateKeyPair(nil)
+		scope := tester.TestScopeUtil.GetTestScope()
+
+		err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+			sk, vk, err := tester.Algo.GenerateKeyPair(nil, scope.GetRNG())
 			if err != nil {
 				return
 			}
 
-			err = tester.signAndVerifyData(chunks, chunks, sk, vk)
+			err = tester.signAndVerifyData(chunks, chunks, SignKeyBag{
+				SignKey: sk,
+				VerKey:  vk,
+			})
 			return
 		})
 		if err != nil {
@@ -57,13 +57,18 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 
 	t.Run("invalid_sign", func(t *testing.T) {
 		t.Run("when_data_mismatch", func(t *testing.T) {
-			err := chunkRunner.runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
-				sk, vk, err := tester.Algo.GenerateKeyPair(nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			err := scope.GetChunkRunner().runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
+				sk, vk, err := tester.Algo.GenerateKeyPair(nil, scope.GetRNG())
 				if err != nil {
 					return
 				}
 
-				err = tester.signAndVerifyData(lhs, rhs, sk, vk)
+				err = tester.signAndVerifyData(lhs, rhs, SignKeyBag{
+					SignKey: sk,
+					VerKey:  vk,
+				})
 				if err == nil {
 					err = errors.New("no error when data mismatch")
 				}
@@ -79,8 +84,10 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 		})
 
 		t.Run("when_key_mismatch", func(t *testing.T) {
-			err := chunkRunner.runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
-				err = tester.signAndVerifyData(lhs, rhs, nil, nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			err := scope.GetChunkRunner().runWithDifferentChunks(func(lhs, rhs [][]byte) (err error) {
+				err = tester.signAndVerifyData(lhs, rhs, SignKeyBag{BaseBag: scope.GetBaseBag()})
 				if err == nil {
 					err = errors.New("no error when key mismatch")
 				}
@@ -98,7 +105,9 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 
 	if !tester.NotMarshalable {
 		t.Run("can_marshal_signing_key", func(t *testing.T) {
-			sk, vk, err := tester.Algo.GenerateKeyPair(nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			sk, vk, err := tester.Algo.GenerateKeyPair(nil, scope.GetRNG())
 			if err != nil {
 				t.Error(err)
 				return
@@ -115,8 +124,11 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 				return
 			}
 
-			err = chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-				err = tester.signAndVerifyData(chunks, chunks, parsedSk, vk)
+			err = scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+				err = tester.signAndVerifyData(chunks, chunks, SignKeyBag{
+					SignKey: parsedSk,
+					VerKey:  vk,
+				})
 				return
 			})
 
@@ -126,7 +138,9 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 		})
 
 		t.Run("can_marshal_verifying_key", func(t *testing.T) {
-			sk, vk, err := tester.Algo.GenerateKeyPair(nil)
+			scope := tester.TestScopeUtil.GetTestScope()
+
+			sk, vk, err := tester.Algo.GenerateKeyPair(nil, scope.GetRNG())
 			if err != nil {
 				t.Error(err)
 				return
@@ -143,8 +157,11 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 				return
 			}
 
-			err = chunkRunner.RunWithSameChunks(func(chunks [][]byte) (err error) {
-				err = tester.signAndVerifyData(chunks, chunks, sk, parsedVk)
+			err = scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+				err = tester.signAndVerifyData(chunks, chunks, SignKeyBag{
+					SignKey: sk,
+					VerKey:  parsedVk,
+				})
 				return
 			})
 
@@ -156,6 +173,8 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 }
 
 func (tester SignAsymTester) Benchmark(b *testing.B) {
+	tester.init()
+
 	panic("NIY")
 }
 

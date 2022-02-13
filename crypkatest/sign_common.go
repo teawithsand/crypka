@@ -1,15 +1,11 @@
 package crypkatest
 
-import (
-	"github.com/teawithsand/crypka"
-)
-
-func SignAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, sk crypka.SigningKey, vk crypka.VerifyingKey) (err error) {
-	sig, err := sk.MakeSigner(nil)
+func SignAndVerifyData(signerChunks [][]byte, verifierChunks [][]byte, bag SignKeyBag) (err error) {
+	sig, err := bag.SignKey.MakeSigner(nil)
 	if err != nil {
 		return
 	}
-	ver, err := vk.MakeVerifier(nil)
+	ver, err := bag.VerKey.MakeVerifier(nil)
 	if err != nil {
 		return
 	}

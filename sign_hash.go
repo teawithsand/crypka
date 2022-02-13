@@ -56,7 +56,7 @@ func (a *HashSignAlgorithm) GetInfo() SignAlgoInfo {
 	}
 }
 
-func (a *HashSignAlgorithm) GenerateKey(ctx KeyGenerationContext) (SymmSignKey, error) {
+func (a *HashSignAlgorithm) GenerateKey(ctx KeyGenerationContext, rng RNG) (SymmSignKey, error) {
 	return &hashKey{
 		hash: a.Hash,
 	}, nil
