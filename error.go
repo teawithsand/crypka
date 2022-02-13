@@ -11,3 +11,5 @@ var ErrDecryptionAuthFiled = errors.New("crypka: Authentication of decrypted tex
 var ErrTooManyChunksEncrypted = errors.New("crypka: Encryptor can't encrypt securely any more chunks")
 
 var ErrInvalidNonceType = errors.New("crypka: invalid NonceType value was provided")
+
+var ErrInvalidRNGSeed = errors.New("crypka: given RNG seed is not valid")

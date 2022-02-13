@@ -22,8 +22,10 @@ const (
 
 type RNGAlgoInfo struct {
 	BaseAlgorithmInfo
-	Type              RNGType
+	RNGType           RNGType
 	MaxGeneratedBytes uint64 // 0 corresponds to infinite
+	MinSeedLength     int    // 0 if no seed
+	MaxSeedLength     int    // 0 if no seed, ^0 max value if unlimited
 }
 
 type RNGAlgo interface {
