@@ -1,13 +1,24 @@
 package crypka
 
-import "io"
-
 // IMPLEMENTATION WARNING!
 // Hashable must be implemented in predictable manner.
-// In other words: each structure data must match
-// Each slice has to be written using prefix length, and appropriate separation must be used in order to prevent moving data between fields(and resulting in same hash).
-//
-// TODO(teawithsand): util, which makes hashing struct either automatic or simplifies doing it correctly.
+// This means that there should be(preferrably) no if statements in it's implementation.
 type Hashable interface {
-	HashSelf(w io.Writer) (err error)
+	HashSelf(w HashableWriter) (err error)
+}
+
+type HashableWriter interface {
+	// Note: this function is not called on top level struct
+	EnterStruct() (err error)
+	ExitStruct() (err error)
+
+	EnterSlice(length int) (err error)
+	ExitSlice() (err error)
+
+	// Note: it's up to HW implementation to provide protection against concatenating data buffers.
+	WriteVarBytes(data []byte) (err error)
+
+	// Note: it's up to caller here to provide protection against concatenating data buffers.
+	// typically, by passing constant size buffers here.
+	WriteConstBytes(data []byte) (err error)
 }
