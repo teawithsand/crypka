@@ -9,7 +9,7 @@ import (
 	"github.com/teawithsand/crypka/crypkatest"
 )
 
-func TesEnc_AES128GCM_CanRegister(t *testing.T) {
+func TestEnc_AES128GCM_CanRegister(t *testing.T) {
 	reg := crypka.NewRegistry()
 
 	crypka.RegisterAES128GCM(reg)
