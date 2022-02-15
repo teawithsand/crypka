@@ -1,6 +1,7 @@
 package crypka
 
 import (
+	"bytes"
 	"encoding/binary"
 	"io"
 )
@@ -157,6 +158,13 @@ func (e intEncoding) Decode(r io.Reader) (n uint64, err error) {
 	default:
 		panic("NIY ERROR HERE INVALID INT ENCODING")
 	}
+	return
+}
+
+func (e intEncoding) DecodeAtStart(buf []byte) (n uint64, sz int, err error) {
+	reader := bytes.NewReader(buf)
+	n, err = e.Decode(reader)
+	sz = len(buf) - reader.Len()
 	return
 }
 
