@@ -9,6 +9,7 @@ const (
 	SymmSignAlgorithmType AlgorithmType = 4
 	AsymSignAlgorithmType AlgorithmType = 5
 	RNGAlgorithmType      AlgorithmType = 6
+	KXAlgorithmType       AlgorithmType = 7
 )
 
 type BaseAlgorithmInfo struct {

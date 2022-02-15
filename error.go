@@ -16,3 +16,4 @@ var ErrInvalidNonceType = errors.New("crypka: invalid NonceType value was provid
 
 var ErrInvalidRNGSeed = errors.New("crypka: given RNG seed is not valid")
 var ErrRNGOutOfEntropy = errors.New("crypka: given RNG ran out of entropy and can't generate random data anymore")
+var ErrInvalidKXDestination = errors.New("crypka: given KX destination buffer is not valid")

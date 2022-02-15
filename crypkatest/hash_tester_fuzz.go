@@ -8,6 +8,7 @@ import (
 	"crypto"
 	"encoding/binary"
 	"reflect"
+	"testing"
 
 	"github.com/teawithsand/crypka"
 )
