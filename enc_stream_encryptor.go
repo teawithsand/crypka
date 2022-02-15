@@ -135,5 +135,8 @@ func (enc *cpkStreamEncryptor) Finalize(appendTo []byte) (res []byte, err error)
 		return
 	}
 
+	// frees resources, since they are not needed after finalization
+	enc.chunkBuffer = nil
+
 	return
 }
