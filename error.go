@@ -20,3 +20,5 @@ var ErrInvalidKXDestination = errors.New("crypka: given KX destination buffer is
 
 var ErrStreamChunkTooBig = errors.New("crypka: streamming encryption chunk is too big and won't be decrypted")
 var ErrStreamCorrupted = errors.New("crypka: stream chunks were corrupted or reordered or stream was truncated or finalization chunks was not found")
+
+var ErrIntEncodingError = errors.New("crypka: Filed to read encoded int")

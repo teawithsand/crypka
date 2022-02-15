@@ -6,6 +6,13 @@ import (
 	"io"
 )
 
+func mapIntEncodingError(err error) error {
+	if err != nil {
+		return ErrIntEncodingError
+	}
+	return nil
+}
+
 type intEncoding int8
 
 const intEncodingMaxSize = 9
@@ -29,17 +36,17 @@ func (e intEncoding) Size(n uint64) int {
 		if n > (1<<16)-1 {
 			return -1
 		}
-		return 1
+		return 2
 	case Byte4:
 		if n > (1<<32)-1 {
 			return -1
 		}
-		return 1
+		return 4
 	case Byte8:
 		if n > (1<<64)-1 {
 			return -1
 		}
-		return 1
+		return 8
 	default:
 		return -1
 	}
@@ -104,6 +111,9 @@ type byteReaderExt struct {
 }
 
 func (r byteReaderExt) ReadByte() (b byte, err error) {
+	defer func() {
+		err = mapIntEncodingError(err)
+	}()
 	var arr [1]byte
 
 	_, err = io.ReadFull(r.R, arr[:])
@@ -116,6 +126,10 @@ func (r byteReaderExt) ReadByte() (b byte, err error) {
 }
 
 func (e intEncoding) Decode(r io.Reader) (n uint64, err error) {
+	defer func() {
+		err = mapIntEncodingError(err)
+	}()
+
 	var b byte
 
 	var br io.ByteReader
@@ -169,7 +183,7 @@ func (e intEncoding) DecodeAtStart(buf []byte) (n uint64, sz int, err error) {
 }
 
 const (
-	ByteVar intEncoding = 0 //default is variable
+	ByteVar intEncoding = 0 // default is variable
 	Byte1   intEncoding = 1
 	Byte2   intEncoding = 2
 	Byte4   intEncoding = 4
