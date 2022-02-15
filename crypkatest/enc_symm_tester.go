@@ -103,7 +103,7 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 		})
 	}
 
-	{
+	if tester.Algo.GetInfo().EncType == crypka.EncTypeChain {
 		t.Run("enc_chain", func(t *testing.T) {
 			t.Run("valid_encryption", func(t *testing.T) {
 				scope := tester.TestScopeUtil.GetTestScope()
