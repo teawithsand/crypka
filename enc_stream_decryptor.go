@@ -1,10 +1,12 @@
 package crypka
 
+import "fmt"
+
 func newCPKStreamDecryptor(inner Decryptor, maxChunkSize int) *cpkStreamDecryptor {
 	enc := &cpkStreamDecryptor{
 		inner:        inner,
 		maxChunkSize: maxChunkSize,
-		chunkCoutner: 1,
+		chunkCounter: 1,
 
 		// chunkSizeEncoding:    Byte4,
 		// chunkCounterEncoding: Byte4,
@@ -21,7 +23,7 @@ type cpkStreamDecryptor struct {
 	chunkCounterEncoding intEncoding
 	chunkSizeEncoding    intEncoding
 
-	chunkCoutner uint64
+	chunkCounter uint64
 
 	dataBuffer    []byte
 	restChunkSize int
@@ -37,7 +39,6 @@ func (dec *cpkStreamDecryptor) GetEncInfo() EncInfo {
 }
 
 func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) {
-	// // fmt.Println("DECRYPT CALL")
 	if dec.cachedError != nil {
 		err = dec.cachedError
 		return
@@ -46,6 +47,16 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 	res = appendTo
 
 	for {
+		if len(in) == 0 {
+			return
+		}
+
+		if dec.chunkCounter == 0 {
+			err = ErrStreamCorrupted
+			dec.cachedError = ErrStreamCorrupted
+			return
+		}
+
 		for dec.restChunkSize == 0 {
 			if len(in) == 0 {
 				return
@@ -63,9 +74,6 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 				continue
 			}
 
-			// fmt.Println("[decryptor]", "DDB:", dec.dataBuffer)
-			// fmt.Println("[decryptor]", "found chunk of", chunkSize, "bytes", "it's size has", sz, "bytes")
-
 			// zero chunks are not allowed
 			if chunkSize <= 0 {
 				err = ErrStreamCorrupted
@@ -80,8 +88,6 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 			}
 
 			if sz != len(dec.dataBuffer) {
-				// // fmt.Println("accessed bytes", sz)
-				// // fmt.Println("buffer size", len(dec.dataBuffer))
 				panic("assertion filed: somehow read less bytes than buffer was")
 			}
 
@@ -106,14 +112,19 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 		}
 
 		if dec.restChunkSize == 0 {
-			// fmt.Println("ddb", dec.dataBuffer)
+			fmt.Println("IDECB", dec.dataBuffer)
+
 			var decryptedBuffer []byte
 			decryptedBuffer, err = dec.inner.Decrypt(dec.dataBuffer, dec.dataBuffer[:0])
 			if err != nil {
 				dec.cachedError = err
 				return
 			}
+
+			fmt.Println("Decrypted", len(dec.dataBuffer))
 			dec.dataBuffer = nil
+
+			fmt.Println("DECB", decryptedBuffer)
 
 			var chunkCounterValue uint64
 			var chunkCounterValueSize int
@@ -126,175 +137,35 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 			}
 			decryptedBuffer = decryptedBuffer[chunkCounterValueSize:]
 
-			if chunkCounterValue != 0 {
-				// fmt.Println("[decryptor]", "final decrypted", decryptedBuffer)
-				res = append(res, decryptedBuffer...)
-			}
-		}
-	}
-
-	return
-}
-
-func (dec *cpkStreamDecryptor) Finalize() (err error) {
-	if dec.cachedError != nil {
-		err = dec.cachedError
-		return
-	}
-
-	return
-}
-
-/*
-
-
-func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) {
-	return
-
-	if dec.cachedError != nil {
-		err = dec.cachedError
-		return
-	}
-
-	if dec.chunkCoutner == 0 {
-		err = ErrStreamCorrupted
-		dec.cachedError = ErrStreamCorrupted
-		return
-	}
-
-	yieldedSomeData := false
-	defer func() {
-		// unset error in such case, and set cached one
-		if yieldedSomeData {
-			err = nil
-			dec.cachedError = err
-		}
-	}()
-
-	doneSomething := true
-	for {
-		if !doneSomething {
-			return
-		}
-		doneSomething = false
-
-		if dec.restChunkSize == 0 {
-			// reading size rather than chunk
-			var chunkSize uint64
-			var sz int
-
-			chunkSize, sz, err = dec.chunkSizeEncoding.DecodeAtStart(dec.dataBuffer)
-			if err != nil {
-				if len(dec.dataBuffer) >= dec.chunkSizeEncoding.MaxSize() {
-					dec.cachedError = err
-					return
-				}
-				dec.dataBuffer = append(dec.dataBuffer, in[0])
-				in = in[1:]
-
-				doneSomething = true
-				continue
-			}
-
-			if dec.maxChunkSize > 0 && chunkSize > uint64(dec.maxChunkSize) {
-				err = ErrStreamChunkTooBig
-				return
-			}
-
-			dec.restChunkSize = int(chunkSize)
-			dec.dataBuffer = dec.dataBuffer[sz:]
-
-			doneSomething = true
-			continue
-		}
-
-		if len(dec.dataBuffer) < dec.restChunkSize {
-			copySize := dec.restChunkSize
-			if len(in) < copySize {
-				copySize = len(in)
-			}
-
-			dec.dataBuffer = append(dec.dataBuffer, in[:copySize]...)
-			in = in[copySize:]
-		}
-
-		if len(dec.dataBuffer) < dec.restChunkSize {
-			return
-		}
-
-		var decryptedData []byte
-		decryptedData, err = dec.inner.Decrypt(dec.dataBuffer, dec.dataBuffer[:0])
-		if err != nil {
-			dec.cachedError = err
-			return
-		}
-
-		var chunkCounterValue uint64
-		var chunkCounterValueSize int
-		chunkCounterValue, chunkCounterValueSize, err = dec.chunkCounterEncoding.DecodeAtStart(decryptedData)
-		if err != nil {
-			dec.cachedError = err
-			return
-		}
-
-		decryptedData = decryptedData[chunkCounterValueSize:]
-
-		if chunkCounterValue == 0 {
-			var finalChunkCounter uint64
-			var finalChunkCounterSize int
-
-			finalChunkCounter, finalChunkCounterSize, err = dec.chunkCounterEncoding.DecodeAtStart(decryptedData)
-			if err != nil {
-				dec.cachedError = err
-				return
-			}
-
-			if finalChunkCounter != dec.chunkCoutner {
-				err = ErrStreamCorrupted
+			fmt.Println("CC", dec.chunkCounter)
+			fmt.Println("CCV", chunkCounterValue)
+			if chunkCounterValue == 0 {
+				// it's finalization chunk
+				dec.chunkCounter = 0
+			} else if chunkCounterValue != dec.chunkCounter {
 				dec.cachedError = ErrStreamCorrupted
-				return
-			}
-
-			dec.chunkCoutner = 0
-			decryptedData = decryptedData[finalChunkCounterSize:]
-
-			if len(decryptedData) != 0 {
 				err = ErrStreamCorrupted
 				return
+			} else {
+				res = append(res, decryptedBuffer...)
+
+				dec.chunkCounter += 1
 			}
 		}
-
-		if dec.chunkCoutner != chunkCounterValue {
-			err = ErrStreamCorrupted
-			dec.cachedError = err
-
-			return
-		}
-
-		res = append(res, decryptedData...)
-
-		dec.dataBuffer = dec.dataBuffer[:0]
-
-		doneSomething = true
-		yieldedSomeData = true
 	}
 }
 
 func (dec *cpkStreamDecryptor) Finalize() (err error) {
-	return
-
 	if dec.cachedError != nil {
 		err = dec.cachedError
 		return
 	}
-	defer func() {
-		dec.cachedError = ErrStreamCorrupted
-	}()
 
-	if dec.chunkCoutner != 0 {
+	if dec.chunkCounter != 0 {
 		err = ErrStreamCorrupted
+		dec.cachedError = ErrStreamCorrupted
 		return
 	}
 
 	return
-}*/
+}
