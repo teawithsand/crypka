@@ -12,6 +12,7 @@ type EncSymmTester struct {
 	TestScopeUtil
 
 	NotMarshalable bool
+	IsBlank        bool
 }
 
 /*
@@ -80,26 +81,28 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 				}
 			})
 
-			t.Run("invalid_when_key_mistmatch", func(t *testing.T) {
-				scope := tester.TestScopeUtil.GetTestScope()
+			if !tester.IsBlank {
+				t.Run("invalid_when_key_mistmatch", func(t *testing.T) {
+					scope := tester.TestScopeUtil.GetTestScope()
 
-				err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
-					err = tester.encryptAndDecryptStreamData(chunks, nil, EncKeyBag{
-						BaseBag: scope.GetBaseBag(),
+					err := scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+						err = tester.encryptAndDecryptStreamData(chunks, nil, EncKeyBag{
+							BaseBag: scope.GetBaseBag(),
+						})
+						return
 					})
-					return
+
+					if err == nil {
+						err = errors.New("expected decryption to fail since keys are invalid")
+					} else {
+						err = nil
+					}
+
+					if err != nil {
+						t.Error(err)
+					}
 				})
-
-				if err == nil {
-					err = errors.New("expected decryption to fail since keys are invalid")
-				} else {
-					err = nil
-				}
-
-				if err != nil {
-					t.Error(err)
-				}
-			})
+			}
 		})
 	}
 
