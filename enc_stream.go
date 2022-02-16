@@ -16,6 +16,7 @@ func (algo *CPKStreamSymmEncAlgo) GetInfo() EncAlgoInfo {
 	} else if info.AuthMode != NotAuthenticated {
 		info.AuthMode = LateAuthenticated
 	}
+	info.EncInfo.RequiresFinalization = true
 
 	return info
 }
