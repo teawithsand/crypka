@@ -7,6 +7,14 @@ import (
 	"github.com/teawithsand/crypka"
 )
 
+type EncSymmFuzzMethod int
+
+const (
+	EncSymmFuzzEncryptorChunks      EncSymmFuzzMethod = 1
+	EncSymmFuzzDecryptorChunks      EncSymmFuzzMethod = 2
+	EncSymmFuzzEncryptDecryptChunks EncSymmFuzzMethod = 3
+)
+
 type EncSymmTester struct {
 	Algo crypka.EncSymmAlgo
 	TestScopeUtil

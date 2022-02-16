@@ -10,7 +10,7 @@ import (
 	"github.com/teawithsand/crypka/crypkatest"
 )
 
-func FuzzEnc_Stream_WithBlankDecryptor(f *testing.F) {
+func FuzzEnc_Stream_WithBlank_Encryptor(f *testing.F) {
 	tester := crypkatest.EncSymmTester{
 		Algo: &crypka.CPKStreamSymmEncAlgo{
 			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
@@ -19,5 +19,29 @@ func FuzzEnc_Stream_WithBlankDecryptor(f *testing.F) {
 		NotMarshalable: true,
 	}
 
-	tester.Fuzz(f)
+	tester.Fuzz(f, crypkatest.EncSymmFuzzEncryptorChunks)
+}
+
+func FuzzEnc_Stream_WithBlank_Decryptor(f *testing.F) {
+	tester := crypkatest.EncSymmTester{
+		Algo: &crypka.CPKStreamSymmEncAlgo{
+			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
+		},
+		// TODO(teawithsand): make marshaling tests pass
+		NotMarshalable: true,
+	}
+
+	tester.Fuzz(f, crypkatest.EncSymmFuzzDecryptorChunks)
+}
+
+func FuzzEnc_Stream_WithBlank_EncryptDecrypt(f *testing.F) {
+	tester := crypkatest.EncSymmTester{
+		Algo: &crypka.CPKStreamSymmEncAlgo{
+			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
+		},
+		// TODO(teawithsand): make marshaling tests pass
+		NotMarshalable: true,
+	}
+
+	tester.Fuzz(f, crypkatest.EncSymmFuzzEncryptDecryptChunks)
 }
