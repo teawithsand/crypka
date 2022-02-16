@@ -10,7 +10,7 @@ import (
 	"github.com/teawithsand/crypka/crypkatest"
 )
 
-func FuzzEnc_Stream_WithXorDecryptor(f *testing.F) {
+func FuzzEnc_Stream_WithBlankDecryptor(f *testing.F) {
 	tester := crypkatest.EncSymmTester{
 		Algo: &crypka.CPKStreamSymmEncAlgo{
 			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
