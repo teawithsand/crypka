@@ -1,7 +1,5 @@
 package crypka
 
-import "fmt"
-
 func newCPKStreamDecryptor(inner Decryptor, maxChunkSize int) *cpkStreamDecryptor {
 	enc := &cpkStreamDecryptor{
 		inner:        inner,
@@ -112,8 +110,6 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 		}
 
 		if dec.restChunkSize == 0 {
-			fmt.Println("IDECB", dec.dataBuffer)
-
 			var decryptedBuffer []byte
 			decryptedBuffer, err = dec.inner.Decrypt(dec.dataBuffer, dec.dataBuffer[:0])
 			if err != nil {
@@ -121,10 +117,7 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 				return
 			}
 
-			fmt.Println("Decrypted", len(dec.dataBuffer))
 			dec.dataBuffer = nil
-
-			fmt.Println("DECB", decryptedBuffer)
 
 			var chunkCounterValue uint64
 			var chunkCounterValueSize int
@@ -137,8 +130,6 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 			}
 			decryptedBuffer = decryptedBuffer[chunkCounterValueSize:]
 
-			fmt.Println("CC", dec.chunkCounter)
-			fmt.Println("CCV", chunkCounterValue)
 			if chunkCounterValue == 0 {
 				// it's finalization chunk
 				dec.chunkCounter = 0

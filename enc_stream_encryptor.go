@@ -1,7 +1,5 @@
 package crypka
 
-import "fmt"
-
 func newCPKStreamEncryptor(inner Encryptor, desiredChunkBufferSize int) *cpkStreamEncryptor {
 	enc := &cpkStreamEncryptor{
 		inner:                  inner,
@@ -58,7 +56,6 @@ func (enc *cpkStreamEncryptor) extendChunkBuffer(data []byte) {
 }
 
 func (enc *cpkStreamEncryptor) emitDataChunk(appendTo []byte) (res []byte, err error) {
-	fmt.Println("WRCHUNK")
 	initialAppendToLength := len(appendTo)
 
 	res = appendTo
@@ -66,10 +63,7 @@ func (enc *cpkStreamEncryptor) emitDataChunk(appendTo []byte) (res []byte, err e
 	chunkCounterBuffer := enc.getChunkCounterBufferView()
 	chunkCounterPrefixSize := enc.chunkCounterEncoding.EncodeAtEnd(chunkCounterBuffer[:], enc.chunkCoutner)
 
-	fmt.Println("CCB", chunkCounterBuffer)
-
 	encBuffer := enc.chunkBuffer[len(chunkCounterBuffer)-chunkCounterPrefixSize:]
-	fmt.Println("EBuffer", encBuffer)
 
 	maxChunkSizeSizeVar := enc.chunkSizeEncoding.MaxSize()
 
@@ -81,7 +75,6 @@ func (enc *cpkStreamEncryptor) emitDataChunk(appendTo []byte) (res []byte, err e
 	chunkSizeBufferEndIndex := len(res)
 
 	prevResLength := len(res)
-	fmt.Println("Encrypted", len(encBuffer))
 	res, err = enc.inner.Encrypt(encBuffer, res)
 	if err != nil {
 		enc.cachedError = err
@@ -94,16 +87,12 @@ func (enc *cpkStreamEncryptor) emitDataChunk(appendTo []byte) (res []byte, err e
 
 	chunkSizePrefixSize := enc.chunkSizeEncoding.EncodeAtEnd(chunkSizeBuffer, encryptedDataLength)
 
-	fmt.Println("CSB", chunkSizeBuffer)
-
 	memmoveBy := len(chunkSizeBuffer) - chunkSizePrefixSize
 	if memmoveBy != 0 {
 		moveSlice := res[initialAppendToLength:]
 		copy(moveSlice[:], moveSlice[memmoveBy:])
 		res = res[:len(res)-memmoveBy]
 	}
-
-	fmt.Println("RES", res)
 
 	enc.resetChunkBuffer()
 	enc.chunkCoutner += 1
