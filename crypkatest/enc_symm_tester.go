@@ -152,47 +152,92 @@ func (tester *EncSymmTester) Test(t *testing.T) {
 	}
 
 	if !tester.NotMarshalable {
-		t.Run("can_marshal_symm_signing_key__chain_test", func(t *testing.T) {
-			scope := tester.TestScopeUtil.GetTestScope()
+		if tester.Algo.GetInfo().EncType == crypka.EncTypeChain || tester.Algo.GetInfo().EncType == crypka.EncTypeBlock {
+			t.Run("can_marshal_symm_signing_key__chain_test", func(t *testing.T) {
+				scope := tester.TestScopeUtil.GetTestScope()
 
-			originalKey, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
-			if err != nil {
-				t.Error(err)
-				return
-			}
-			buf, err := crypka.MarshalKeyToSlice(originalKey)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-
-			parsedKey, err := tester.Algo.ParseSymmEncKey(nil, buf)
-			if err != nil {
-				t.Error(err)
-				return
-			}
-
-			err = scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
-				err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
-					EncKey: originalKey,
-					DecKey: parsedKey,
-				})
+				originalKey, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
 				if err != nil {
+					t.Error(err)
 					return
 				}
-				err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
-					EncKey: parsedKey,
-					DecKey: originalKey,
-				})
+				buf, err := crypka.MarshalKeyToSlice(originalKey)
 				if err != nil {
+					t.Error(err)
 					return
 				}
-				return
+
+				parsedKey, err := tester.Algo.ParseSymmEncKey(nil, buf)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+
+				err = scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
+						EncKey: originalKey,
+						DecKey: parsedKey,
+					})
+					if err != nil {
+						return
+					}
+					err = tester.encryptAndDecryptChainData(chunks, EncKeyBag{
+						EncKey: parsedKey,
+						DecKey: originalKey,
+					})
+					if err != nil {
+						return
+					}
+					return
+				})
+				if err != nil {
+					t.Error(err)
+					return
+				}
 			})
-			if err != nil {
-				t.Error(err)
-				return
-			}
-		})
+		} else {
+			t.Run("can_marshal_symm_signing_key__stream_test", func(t *testing.T) {
+				scope := tester.TestScopeUtil.GetTestScope()
+
+				originalKey, err := tester.Algo.GenerateKey(nil, scope.GetRNG())
+				if err != nil {
+					t.Error(err)
+					return
+				}
+				buf, err := crypka.MarshalKeyToSlice(originalKey)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+
+				parsedKey, err := tester.Algo.ParseSymmEncKey(nil, buf)
+				if err != nil {
+					t.Error(err)
+					return
+				}
+
+				err = scope.GetChunkRunner().RunWithSameChunks(func(chunks [][]byte) (err error) {
+					err = tester.encryptAndDecryptStreamData(chunks, nil, EncKeyBag{
+						EncKey: originalKey,
+						DecKey: parsedKey,
+					})
+					if err != nil {
+						return
+					}
+					err = tester.encryptAndDecryptStreamData(chunks, nil, EncKeyBag{
+						EncKey: parsedKey,
+						DecKey: originalKey,
+					})
+					if err != nil {
+						return
+					}
+					return
+				})
+				if err != nil {
+					t.Error(err)
+					return
+				}
+			})
+		}
 	}
 }

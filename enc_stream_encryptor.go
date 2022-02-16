@@ -138,6 +138,10 @@ func (enc *cpkStreamEncryptor) Finalize(appendTo []byte) (res []byte, err error)
 		enc.cachedError = ErrAlreadyFinalized
 	}()
 
+	if enc.inner.GetEncInfo().RequiresFinalization {
+		panic("encryptors, which require finalization are not supported by cpkStreamEncryptor")
+	}
+
 	res = appendTo
 
 	if len(enc.getDataBufferView()) > 0 {

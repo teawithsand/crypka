@@ -16,8 +16,6 @@ func TestEnc_Stream_WithXorEncryptor(t *testing.T) {
 				GenerateKeyLength: 16,
 			},
 		},
-		// TODO(teawithsand): make marshaling tests pass
-		NotMarshalable: true,
 	}
 
 	tester.Test(t)

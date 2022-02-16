@@ -158,5 +158,10 @@ func (dec *cpkStreamDecryptor) Finalize() (err error) {
 		return
 	}
 
+	err = dec.inner.Finalize()
+	if err != nil {
+		return
+	}
+
 	return
 }

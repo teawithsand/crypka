@@ -1,5 +1,7 @@
 package crypka
 
+import "io"
+
 // Implements algorithm, which handles streamming encryption in crypka's format.
 type CPKStreamSymmEncAlgo struct {
 	EncSymmAlgo
@@ -9,7 +11,11 @@ func (algo *CPKStreamSymmEncAlgo) GetInfo() EncAlgoInfo {
 	info := algo.EncSymmAlgo.GetInfo()
 	info.EncType = EncTypeStream
 
-	// TODO(teawithsand): patch authentication info here
+	if info.AuthMode == EagerAuthetnicated {
+		info.AuthMode = EagerAuthetnicated
+	} else if info.AuthMode != NotAuthenticated {
+		info.AuthMode = LateAuthenticated
+	}
 
 	return info
 }
@@ -62,4 +68,13 @@ func (ek *cpkStreamEncSymmKey) MakeDecryptor(ctx KeyContext) (dec Decryptor, err
 
 	dec = newCPKStreamDecryptor(inner, 1024)
 	return
+}
+
+func (ek *cpkStreamEncSymmKey) MarshalToWriter(w io.Writer) (err error) {
+	mk, ok := ek.wrapped.(MarshalableKey)
+	if !ok {
+		err = ErrKeyNotMarshalable
+		return
+	}
+	return mk.MarshalToWriter(w)
 }
