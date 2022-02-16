@@ -23,7 +23,10 @@ func (tester EncSymmTester) Fuzz(f *testing.F) {
 			return
 		}
 
-		dec.Decrypt(data, nil)
+		FuzzingChunks(data, func(buf []byte) (err error) {
+			dec.Decrypt(buf, nil)
+			return
+		})
 	}
 
 	f.Fuzz(fuzzDecrypt)
