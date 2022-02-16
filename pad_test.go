@@ -8,10 +8,10 @@ import (
 	"github.com/teawithsand/crypka"
 )
 
-func TestCanPadMesasges(t *testing.T) {
+func TestCanPadMessages(t *testing.T) {
 	assert := func(in, out []byte, sz int) {
 		res := crypka.PaddingIEC78164().Pad(in, sz)
-		if len(res) != len(out) || bytes.Compare(res, out) != 0 {
+		if !bytes.Equal(res, out) {
 			t.Error(fmt.Sprintf(
 				"Invalid test case found:\nGot: %x\nExpected: %x\nSize: %d", res, out, sz,
 			))
