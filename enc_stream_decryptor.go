@@ -131,6 +131,24 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 			decryptedBuffer = decryptedBuffer[chunkCounterValueSize:]
 
 			if chunkCounterValue == 0 {
+				var lastChunkCounter uint64
+				var lastChunkCounterValueSize int
+
+				lastChunkCounter, lastChunkCounterValueSize, err = dec.chunkCounterEncoding.DecodeAtStart(decryptedBuffer)
+				if err != nil {
+					dec.cachedError = ErrStreamCorrupted
+					err = ErrStreamCorrupted
+					return
+				}
+
+				decryptedBuffer = decryptedBuffer[lastChunkCounterValueSize:]
+
+				if dec.chunkCounter != lastChunkCounter {
+					dec.cachedError = ErrStreamCorrupted
+					err = ErrStreamCorrupted
+					return
+				}
+
 				// it's finalization chunk
 				dec.chunkCounter = 0
 			} else if chunkCounterValue != dec.chunkCounter {
