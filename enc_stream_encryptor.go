@@ -21,8 +21,9 @@ type cpkStreamEncryptor struct {
 	desiredChunkBufferSize int
 	chunkBuffer            []byte
 
-	chunkCounterEncoding intEncoding
-	chunkSizeEncoding    intEncoding
+	chunkCounterEncoding    intEncoding
+	chunkSizeEncoding       intEncoding
+	cpkControlValueEncoding intEncoding
 
 	chunkCoutner uint64
 
@@ -151,11 +152,12 @@ func (enc *cpkStreamEncryptor) Finalize(appendTo []byte) (res []byte, err error)
 		}
 	}
 
-	var sz int
-	enc.chunkBuffer, sz = enc.chunkCounterEncoding.AppendToBuf(enc.chunkBuffer, enc.chunkCoutner)
+	var sz1, sz2 int
+	enc.chunkBuffer, sz2 = enc.cpkControlValueEncoding.AppendToBuf(enc.chunkBuffer, streamEndCpkControlByte.toEncodable())
+	enc.chunkBuffer, sz1 = enc.chunkCounterEncoding.AppendToBuf(enc.chunkBuffer, enc.chunkCoutner)
 	enc.chunkCoutner = 0
 
-	if sz != len(enc.getDataBufferView()) {
+	if sz1+sz2 != len(enc.getDataBufferView()) {
 		panic("assertion filed size mismatch")
 	}
 

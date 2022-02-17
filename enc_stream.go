@@ -2,6 +2,27 @@ package crypka
 
 import "io"
 
+// Note: this type might change in future, when we run out of values on uint8
+type cpkControlValue uint8
+
+func (v *cpkControlValue) decode(encoded uint64) (ok bool) {
+	if encoded != uint64(streamEndCpkControlByte) {
+		ok = false
+	} else {
+		*v = cpkControlValue(encoded)
+		ok = true
+	}
+	return
+}
+
+func (v cpkControlValue) toEncodable() uint64 {
+	return uint64(v)
+}
+
+const (
+	streamEndCpkControlByte cpkControlValue = 0
+)
+
 // Implements algorithm, which handles streamming encryption in crypka's format.
 type CPKStreamSymmEncAlgo struct {
 	EncSymmAlgo
