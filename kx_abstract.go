@@ -15,7 +15,7 @@ type KXExchanger interface {
 }
 
 type KXKeygen interface {
-	GenerateKXPair(ctx KeyGenerationContext) (public KXPublic, secret KXSecret, err error)
+	GenerateKXPair(ctx KeyGenerationContext, rng RNG) (public KXPublic, secret KXSecret, err error)
 }
 
 type KXAlgo interface {
