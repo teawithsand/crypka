@@ -18,8 +18,9 @@ type cpkStreamDecryptor struct {
 
 	maxChunkSize int
 
-	chunkCounterEncoding intEncoding
-	chunkSizeEncoding    intEncoding
+	chunkCounterEncoding    intEncoding
+	chunkSizeEncoding       intEncoding
+	cpkControlValueEncoding intEncoding
 
 	chunkCounter uint64
 
@@ -131,6 +132,58 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 			decryptedBuffer = decryptedBuffer[chunkCounterValueSize:]
 
 			if chunkCounterValue == 0 {
+				var cpkControlValueRaw uint64
+				var cpkControlValueSize int
+				var cpkControlValue cpkControlValue
+
+				cpkControlValueRaw, cpkControlValueSize, err = dec.cpkControlValueEncoding.DecodeAtStart(decryptedBuffer)
+				if err != nil {
+					dec.cachedError = ErrStreamCorrupted
+					err = ErrStreamCorrupted
+					return
+				}
+				ok := cpkControlValue.decode(cpkControlValueRaw)
+				if !ok {
+					dec.cachedError = ErrStreamCorrupted
+					err = ErrStreamCorrupted
+					return
+				}
+				decryptedBuffer = decryptedBuffer[cpkControlValueSize:]
+
+				if cpkControlValue == 0 {
+					var lastChunkCounter uint64
+					var lastChunkCounterValueSize int
+
+					lastChunkCounter, lastChunkCounterValueSize, err = dec.chunkCounterEncoding.DecodeAtStart(decryptedBuffer)
+					if err != nil {
+						dec.cachedError = ErrStreamCorrupted
+						err = ErrStreamCorrupted
+						return
+					}
+
+					decryptedBuffer = decryptedBuffer[lastChunkCounterValueSize:]
+
+					if dec.chunkCounter != lastChunkCounter {
+						dec.cachedError = ErrStreamCorrupted
+						err = ErrStreamCorrupted
+						return
+					}
+				} else {
+					err = ErrUnsupportedCPKControlValue
+					dec.cachedError = ErrUnsupportedCPKControlValue
+					return
+				}
+
+				// For now let's skip that check
+				// Zero-counter chunk in general notifies special one
+				/*
+					if len(decryptedBuffer) != 0 {
+						dec.cachedError = ErrStreamCorrupted
+						err = ErrStreamCorrupted
+						return
+					}
+				*/
+
 				// it's finalization chunk
 				dec.chunkCounter = 0
 			} else if chunkCounterValue != dec.chunkCounter {
