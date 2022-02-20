@@ -27,4 +27,5 @@ type KXAlgo interface {
 
 type KXAlgorithmInfo struct {
 	BaseAlgorithmInfo
+	MaxResLen int
 }
