@@ -14,9 +14,14 @@ type KXExchanger interface {
 	PerformExchange(ctx KeyContext, public KXPublic, secret KXSecret, res []byte) (err error)
 }
 
+type KXGenerator interface {
+	GenerateKXPair(ctx KeyGenerationContext) (public KXPublic, secret KXSecret, err error)
+}
+
 type KXAlgo interface {
 	KXParser
 	KXExchanger
+	KXGenerator
 	GetInfo() KXAlgorithmInfo
 }
 
