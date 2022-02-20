@@ -47,7 +47,7 @@ func (algo *KXRngAlgo) PerformExchange(ctx KeyContext, public KXPublic, secret K
 		if maxResLen != 0 {
 			sz = maxResLen
 		} else {
-			sz = 64
+			sz = fallbackKXRNGAlgoSeedSize
 		}
 
 		if maxRngLen != 0 && sz > maxRngLen {
