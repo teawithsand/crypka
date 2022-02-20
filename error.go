@@ -17,6 +17,7 @@ var ErrInvalidNonceType = errors.New("crypka: invalid NonceType value was provid
 var ErrInvalidRNGSeed = errors.New("crypka: given RNG seed is not valid")
 var ErrRNGOutOfEntropy = errors.New("crypka: given RNG ran out of entropy and can't generate random data anymore")
 var ErrInvalidKXDestination = errors.New("crypka: given KX destination buffer is not valid")
+var ErrUnsupportedKXPart = errors.New("crypka: specified public or secret KX part is not supported by this algorithm")
 
 var ErrStreamChunkTooBig = errors.New("crypka: streamming encryption chunk is too big and won't be decrypted")
 var ErrStreamCorrupted = errors.New("crypka: stream chunks were corrupted or reordered or stream was truncated or finalization chunks was not found")
