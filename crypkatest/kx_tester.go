@@ -7,6 +7,12 @@ import (
 	"github.com/teawithsand/crypka"
 )
 
+type KXFuzzMethod int
+
+const (
+	KXFuzzMethodRandomExchange KXFuzzMethod = 1
+)
+
 type KXTester struct {
 	Algo crypka.KXAlgo
 	TestScopeUtil
