@@ -32,11 +32,10 @@ func (algo *CPKStreamSymmEncAlgo) GetInfo() EncAlgoInfo {
 	info := algo.EncSymmAlgo.GetInfo()
 	info.EncType = EncTypeStream
 
-	if info.AuthMode == EagerAuthetnicated {
-		info.AuthMode = EagerAuthetnicated
-	} else if info.AuthMode != NotAuthenticated {
-		info.AuthMode = LateAuthenticated
+	if info.AuthMode.IsFinalizeAuthetnicated() || info.AuthMode.IsEagerAuthenticated() {
+		info.AuthMode.SetTruncAuthenticated(true)
 	}
+
 	info.EncInfo.RequiresFinalization = true
 
 	return info

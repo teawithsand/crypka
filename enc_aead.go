@@ -46,6 +46,12 @@ func (algo *AEADSymmEncAlgo) GetInfo() EncAlgoInfo {
 		panic(ErrInvalidNonceType)
 	}
 
+	eam := NotAuthenticatedEncAuthMode
+
+	eam.SetEagerAuthenticated(true)
+	eam.SetFinalizeAuthetnicated(true)
+	eam.SetTruncAuthenticated(false)
+
 	return EncAlgoInfo{
 		BaseAlgorithmInfo: BaseAlgorithmInfo{
 			Type:     SymmEncAlgorithmType,
@@ -55,7 +61,7 @@ func (algo *AEADSymmEncAlgo) GetInfo() EncAlgoInfo {
 			RequiresFinalization: false,
 			EncType:              encType,
 		},
-		AuthMode: LateSoftAuthenticated,
+		AuthMode: eam,
 	}
 }
 

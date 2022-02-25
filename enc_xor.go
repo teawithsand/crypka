@@ -36,7 +36,7 @@ func (algo *XorEncSymmAlgo) GetInfo() EncAlgoInfo {
 			RequiresFinalization: false,
 			EncType:              EncTypeStream,
 		},
-		AuthMode: NotAuthenticated,
+		AuthMode: NotAuthenticatedEncAuthMode,
 	}
 }
 
