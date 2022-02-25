@@ -31,7 +31,7 @@ func (w *hashSignerVerifier) Finalize(appendTo []byte) (sign []byte, err error) 
 func (w *hashSignerVerifier) Verify(sign []byte) (err error) {
 	validHash := w.hash.Sum(nil)
 	if !hmac.Equal(validHash, sign) {
-		err = ErrInvalidSign
+		err = ErrSignInvalid
 	}
 	return
 }

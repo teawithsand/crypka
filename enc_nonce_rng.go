@@ -19,7 +19,7 @@ func (nm *RNGNonceManager) NextNonce() (err error) {
 	if !nm.Unsafe && len(nm.Nonce) < 64*2/8 {
 		// birthday paradox requires us to use square root of value
 		if nm.emittedNonceCount >= 1<<(len(nm.Nonce)*8/2) {
-			err = ErrTooManyChunksEncrypted
+			err = ErrEncTooManyChunksEncrypted
 			return
 		}
 	}

@@ -70,7 +70,7 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 				if err == nil {
 					err = errors.New("no error when data mismatch")
 				}
-				if errors.Is(err, crypka.ErrInvalidSign) {
+				if errors.Is(err, crypka.ErrSignInvalid) {
 					err = nil
 				}
 				return
@@ -89,7 +89,7 @@ func (tester *SignAsymTester) Test(t *testing.T) {
 				if err == nil {
 					err = errors.New("no error when key mismatch")
 				}
-				if errors.Is(err, crypka.ErrInvalidSign) {
+				if errors.Is(err, crypka.ErrSignInvalid) {
 					err = nil
 				}
 				return

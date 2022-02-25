@@ -136,7 +136,7 @@ func (enc *cpkStreamEncryptor) Finalize(appendTo []byte) (res []byte, err error)
 	}
 
 	defer func() {
-		enc.cachedError = ErrAlreadyFinalized
+		enc.cachedError = ErrEncAlreadyFinalized
 	}()
 
 	if enc.inner.GetEncInfo().RequiresFinalization {

@@ -51,8 +51,8 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 		}
 
 		if dec.chunkCounter == 0 {
-			err = ErrStreamCorrupted
-			dec.cachedError = ErrStreamCorrupted
+			err = ErrEncStreamCorrupted
+			dec.cachedError = ErrEncStreamCorrupted
 			return
 		}
 
@@ -75,14 +75,14 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 
 			// zero chunks are not allowed
 			if chunkSize <= 0 {
-				err = ErrStreamCorrupted
-				dec.cachedError = ErrStreamCorrupted
+				err = ErrEncStreamCorrupted
+				dec.cachedError = ErrEncStreamCorrupted
 				return
 			}
 
 			if dec.maxChunkSize > 0 && chunkSize > uint64(dec.maxChunkSize) {
-				err = ErrStreamChunkTooBig
-				dec.cachedError = ErrStreamChunkTooBig
+				err = ErrEncStreamChunkTooBig
+				dec.cachedError = ErrEncStreamChunkTooBig
 				return
 			}
 
@@ -125,8 +125,8 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 
 			chunkCounterValue, chunkCounterValueSize, err = dec.chunkCounterEncoding.DecodeAtStart(decryptedBuffer)
 			if err != nil {
-				dec.cachedError = ErrStreamCorrupted
-				err = ErrStreamCorrupted
+				dec.cachedError = ErrEncStreamCorrupted
+				err = ErrEncStreamCorrupted
 				return
 			}
 			decryptedBuffer = decryptedBuffer[chunkCounterValueSize:]
@@ -138,14 +138,14 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 
 				cpkControlValueRaw, cpkControlValueSize, err = dec.cpkControlValueEncoding.DecodeAtStart(decryptedBuffer)
 				if err != nil {
-					dec.cachedError = ErrStreamCorrupted
-					err = ErrStreamCorrupted
+					dec.cachedError = ErrEncStreamCorrupted
+					err = ErrEncStreamCorrupted
 					return
 				}
 				ok := cpkControlValue.decode(cpkControlValueRaw)
 				if !ok {
-					dec.cachedError = ErrStreamCorrupted
-					err = ErrStreamCorrupted
+					dec.cachedError = ErrEncStreamCorrupted
+					err = ErrEncStreamCorrupted
 					return
 				}
 				decryptedBuffer = decryptedBuffer[cpkControlValueSize:]
@@ -156,21 +156,21 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 
 					lastChunkCounter, lastChunkCounterValueSize, err = dec.chunkCounterEncoding.DecodeAtStart(decryptedBuffer)
 					if err != nil {
-						dec.cachedError = ErrStreamCorrupted
-						err = ErrStreamCorrupted
+						dec.cachedError = ErrEncStreamCorrupted
+						err = ErrEncStreamCorrupted
 						return
 					}
 
 					decryptedBuffer = decryptedBuffer[lastChunkCounterValueSize:]
 
 					if dec.chunkCounter != lastChunkCounter {
-						dec.cachedError = ErrStreamCorrupted
-						err = ErrStreamCorrupted
+						dec.cachedError = ErrEncStreamCorrupted
+						err = ErrEncStreamCorrupted
 						return
 					}
 				} else {
-					err = ErrUnsupportedCPKControlValue
-					dec.cachedError = ErrUnsupportedCPKControlValue
+					err = ErrEncStreamUnsupportedCPK
+					dec.cachedError = ErrEncStreamUnsupportedCPK
 					return
 				}
 
@@ -187,8 +187,8 @@ func (dec *cpkStreamDecryptor) Decrypt(in, appendTo []byte) (res []byte, err err
 				// it's finalization chunk
 				dec.chunkCounter = 0
 			} else if chunkCounterValue != dec.chunkCounter {
-				dec.cachedError = ErrStreamCorrupted
-				err = ErrStreamCorrupted
+				dec.cachedError = ErrEncStreamCorrupted
+				err = ErrEncStreamCorrupted
 				return
 			} else {
 				res = append(res, decryptedBuffer...)
@@ -206,8 +206,8 @@ func (dec *cpkStreamDecryptor) Finalize() (err error) {
 	}
 
 	if dec.chunkCounter != 0 {
-		err = ErrStreamCorrupted
-		dec.cachedError = ErrStreamCorrupted
+		err = ErrEncStreamCorrupted
+		dec.cachedError = ErrEncStreamCorrupted
 		return
 	}
 

@@ -3,24 +3,23 @@ package crypka
 import "errors"
 
 var ErrKeyParseField = errors.New("crypka: filed to parse key")
-var ErrInvalidSign = errors.New("crypka: sign is invalid")
-
-var ErrAlreadyFinalized = errors.New("crypka: encryption was already finalized")
-
 var ErrKeyNotMarshalable = errors.New("crypka: Key is not marshallable")
 
-var ErrDecryptionAuthFiled = errors.New("crypka: Authentication of decrypted text filed. Message has been modified")
-var ErrTooManyChunksEncrypted = errors.New("crypka: Encryptor can't encrypt securely any more chunks")
+var ErrSignInvalid = errors.New("crypka: sign is invalid")
 
-var ErrInvalidNonceType = errors.New("crypka: invalid NonceType value was provided")
+var ErrEncAlreadyFinalized = errors.New("crypka: encryption was already finalized")
+var ErrEncAuthFiled = errors.New("crypka: Authentication of decrypted text filed. Message has been modified")
+var ErrEncTooManyChunksEncrypted = errors.New("crypka: Encryptor can't encrypt securely any more chunks")
+var ErrEncInvalidNonceType = errors.New("crypka: invalid NonceType value was provided")
 
-var ErrInvalidRNGSeed = errors.New("crypka: given RNG seed is not valid")
+var ErrEncStreamChunkTooBig = errors.New("crypka: streamming encryption chunk is too big and won't be decrypted")
+var ErrEncStreamCorrupted = errors.New("crypka: stream chunks were corrupted or reordered or stream was truncated or finalization chunks was not found")
+var ErrEncStreamUnsupportedCPK = errors.New("crpyka: found unknown CPK control value in decryption stream. data is either corrupted or decryptor version is too old")
+
+var ErrRNGInvalidSeed = errors.New("crypka: given RNG seed is not valid")
 var ErrRNGOutOfEntropy = errors.New("crypka: given RNG ran out of entropy and can't generate random data anymore")
-var ErrInvalidKXDestination = errors.New("crypka: given KX destination buffer is not valid")
-var ErrUnsupportedKXPart = errors.New("crypka: specified public or secret KX part is not supported by this algorithm")
 
-var ErrStreamChunkTooBig = errors.New("crypka: streamming encryption chunk is too big and won't be decrypted")
-var ErrStreamCorrupted = errors.New("crypka: stream chunks were corrupted or reordered or stream was truncated or finalization chunks was not found")
-var ErrUnsupportedCPKControlValue = errors.New("crpyka: found unknown CPK control value in decryption stream. data is either corrupted or decryptor version is too old")
+var ErrKXInvalidDestination = errors.New("crypka: given KX destination buffer is not valid")
+var ErrKXUnsupportedPart = errors.New("crypka: specified public or secret KX part is not supported by this algorithm")
 
-var ErrIntEncodingError = errors.New("crypka: Filed to read encoded int")
+var errIntEncodingError = errors.New("crypka: Filed to read encoded int")

@@ -19,7 +19,7 @@ func (algo *HashCompressRNGAlgo) GetInfo() RNGAlgoInfo {
 
 func (algo *HashCompressRNGAlgo) MakeRng(ctx RNGGenerationContext, seed []byte) (rng RNG, err error) {
 	if len(seed) < algo.MinSeedLength {
-		err = ErrInvalidRNGSeed
+		err = ErrRNGInvalidSeed
 		return
 	}
 

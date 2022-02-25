@@ -8,7 +8,7 @@ import (
 
 func mapIntEncodingError(err error) error {
 	if err != nil {
-		return ErrIntEncodingError
+		return errIntEncodingError
 	}
 	return nil
 }

@@ -52,7 +52,7 @@ func (config *NonceConfig) MakeNonceManager(ctx KeyContext, length int) (nm Nonc
 		nm = rngManager
 		return
 	} else {
-		err = ErrInvalidNonceType
+		err = ErrEncInvalidNonceType
 		return
 	}
 }

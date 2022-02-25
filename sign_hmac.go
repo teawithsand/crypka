@@ -92,7 +92,7 @@ func (w *hmacSignerVerifier) Finalize(appendTo []byte) (sign []byte, err error) 
 func (w *hmacSignerVerifier) Verify(sign []byte) (err error) {
 	validHMAC := w.hash.Sum(nil)
 	if !hmac.Equal(validHMAC, sign) {
-		err = ErrInvalidSign
+		err = ErrSignInvalid
 	}
 	return
 }

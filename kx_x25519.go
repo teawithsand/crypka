@@ -73,19 +73,19 @@ func (algo *X25519KXAlgo) ParseKXSecret(ctx KeyParseContext, data []byte) (sec K
 
 func (algo *X25519KXAlgo) PerformExchange(ctx KeyContext, public KXPublic, secret KXSecret, res []byte) (err error) {
 	if len(res) > 32 {
-		err = ErrInvalidKXDestination
+		err = ErrKXInvalidDestination
 		return
 	}
 
 	typedPublic, ok := public.(*x25519KXPublic)
 	if !ok {
-		err = ErrUnsupportedKXPart
+		err = ErrKXUnsupportedPart
 		return
 	}
 
 	typedSecret, ok := secret.(*x25519KXSecret)
 	if !ok {
-		err = ErrUnsupportedKXPart
+		err = ErrKXUnsupportedPart
 		return
 	}
 

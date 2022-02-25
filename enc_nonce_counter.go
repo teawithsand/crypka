@@ -29,7 +29,7 @@ func (nm CounterNonceManager) NextNonce() (err error) {
 					nonce[j] = 0
 				}
 			} else {
-				err = ErrTooManyChunksEncrypted
+				err = ErrEncTooManyChunksEncrypted
 			}
 			return
 		} else if nonce[i] == 255 {

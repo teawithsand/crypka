@@ -12,7 +12,7 @@ func innerActualSignEd25519(ctx KeyContext, key ed25519.PrivateKey, data []byte)
 
 func innerActualVerifyEd25519(ctx KeyContext, key ed25519.PublicKey, data, sign []byte) (err error) {
 	if !ed25519.Verify(key, data, sign) {
-		err = ErrInvalidSign
+		err = ErrSignInvalid
 	}
 	return
 }

@@ -45,7 +45,7 @@ func (algo *MathRNGAlgo) GetInfo() RNGAlgoInfo {
 
 func (algo *MathRNGAlgo) MakeRng(ctx RNGGenerationContext, seed []byte) (rng RNG, err error) {
 	if len(seed) != 8 {
-		err = ErrInvalidRNGSeed
+		err = ErrRNGInvalidSeed
 		return
 	}
 

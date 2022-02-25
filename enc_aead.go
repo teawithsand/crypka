@@ -43,7 +43,7 @@ func (algo *AEADSymmEncAlgo) GetInfo() EncAlgoInfo {
 	} else if algo.NonceConfig.NonceType == RNGNonce {
 		encType = EncTypeBlock
 	} else {
-		panic(ErrInvalidNonceType)
+		panic(ErrEncInvalidNonceType)
 	}
 
 	eam := NotAuthenticatedEncAuthMode
@@ -227,7 +227,7 @@ func (dec *aeadDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) {
 		nonce = dec.nonceManager.GetNonce()
 	} else {
 		if len(in) < dec.embedNonceLength {
-			err = ErrDecryptionAuthFiled
+			err = ErrEncAuthFiled
 			return
 		}
 
@@ -237,7 +237,7 @@ func (dec *aeadDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) {
 
 	res, err = dec.aead.Open(res, nonce, in, nil)
 	if err != nil {
-		err = ErrDecryptionAuthFiled
+		err = ErrEncAuthFiled
 		return
 	}
 

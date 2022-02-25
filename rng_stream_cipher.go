@@ -36,7 +36,7 @@ func (algo *EncStreamRNGAlgo) GetInfo() RNGAlgoInfo {
 
 func (algo *EncStreamRNGAlgo) MakeRng(ctx RNGGenerationContext, seed []byte) (rng RNG, err error) {
 	if len(seed) != algo.KeyLength {
-		err = ErrInvalidRNGSeed
+		err = ErrRNGInvalidSeed
 		return
 	}
 
