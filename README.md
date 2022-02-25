@@ -31,3 +31,6 @@ There is a couple of reasons:
  * Support for post quantumm algorithms
  * Rekeing for stream encryptors, so one can encrypt infiite amount of data
  * Slow hashes for passwords and and proof of work
+
+## TODOs till v0.0.1 tag:
+ * kx-to-encryption - asymmetric encryption algorithm from KX and symmetric encryption algorithm
