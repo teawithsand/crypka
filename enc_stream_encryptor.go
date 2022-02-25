@@ -140,7 +140,7 @@ func (enc *cpkStreamEncryptor) Finalize(appendTo []byte) (res []byte, err error)
 	}()
 
 	if enc.inner.GetEncInfo().RequiresFinalization {
-		panic("encryptors, which require finalization are not supported by cpkStreamEncryptor")
+		panic("encryptors, which require finalization are not supported by cpkStreamEncryptor yet")
 	}
 
 	res = appendTo
