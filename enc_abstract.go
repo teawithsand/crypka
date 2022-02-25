@@ -62,25 +62,63 @@ type Decryptor interface {
 	Finalize() (err error)
 }
 
-type EncAuthMode uint8
+// Note: rest of bits of this value is reserved for future use.
+// They must not be used by any implementation.
+type EncAuthMode uint32
 
-const (
-	// Algorithm provides no guarantees about validity of decrypted data.
-	NotAuthenticated EncAuthMode = 0
+const NotAuthenticatedEncAuthMode EncAuthMode = 0
 
-	// Encrpytion algorithm guarantees that no modification of data occurred between encryption and decryption.
-	// Also, it gurantees that using invalid key will cause error.
-	//
-	// Error may be triggered instantly durign decrpytion call or during finalization phase.
-	LateSoftAuthenticated EncAuthMode = 1
+func bool2int(to bool) uint8 {
+	if to {
+		return 1
+	} else {
+		return 0
+	}
+}
 
-	// Just like LateSoftAuthenticated, but also guarantees that any truncation of stream is detected during finalization.
-	LateAuthenticated EncAuthMode = 2
+func (eam *EncAuthMode) IsZero() bool {
+	return eam == nil || *eam == 0
+}
 
-	// Just like EncAuthMode, but guarantees that decrypt will never return any modified data.
-	// So if any change was done, decrypt will report error instantly.
-	EagerAuthetnicated EncAuthMode = 3
-)
+func (eam *EncAuthMode) setBit(to bool, nth int) {
+	(*eam) |= EncAuthMode(bool2int(to)) << nth
+}
+
+func (eam *EncAuthMode) getBit(nth int) bool {
+	return eam != nil && *eam&(1<<nth) > 0
+}
+
+// Returns true if decryptor will never yield data that differs from originally encrypted.
+func (eam *EncAuthMode) IsEagerAuthenticated() bool {
+	return eam.getBit(0)
+}
+
+func (eam *EncAuthMode) SetEagerAuthenticated(to bool) {
+	eam.setBit(to, 0)
+}
+
+// Returns true, if decryptor will always detect changes made to ciphertext during finalization.
+//
+// Note: this does not apply to block encryptors,
+// since they by their nature are not finalizable, so according to above def, they should have it set to true.
+func (eam *EncAuthMode) IsFinalizeAuthetnicated() bool {
+	return eam.getBit(1)
+}
+func (eam *EncAuthMode) SetFinalizeAuthetnicated(to bool) {
+	eam.setBit(to, 1)
+}
+
+// Retruns true, if decryptor will always detect if stream/chain encryption was truncated.
+//
+// Note: this does not apply to block encryptors.
+// They are never trunc authenticated, due to how they work.
+func (eam *EncAuthMode) IsTruncAuthenticated() bool {
+	return eam.getBit(2)
+}
+
+func (eam *EncAuthMode) SetTruncAuthenticated(to bool) {
+	eam.setBit(to, 2)
+}
 
 type EncAlgoInfo struct {
 	BaseAlgorithmInfo
