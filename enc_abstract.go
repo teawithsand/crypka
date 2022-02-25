@@ -112,6 +112,8 @@ func (eam *EncAuthMode) SetFinalizeAuthetnicated(to bool) {
 //
 // Note: this does not apply to block encryptors.
 // They are never trunc authenticated, due to how they work.
+//
+// Note 2: Truncation is checked during finalization only.
 func (eam *EncAuthMode) IsTruncAuthenticated() bool {
 	return eam.getBit(2)
 }
