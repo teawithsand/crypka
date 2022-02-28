@@ -2,6 +2,12 @@ package crypka
 
 import "io"
 
+// TODO(teawithsand): make this algorithm stream-capable if underlying algo is stream capable as well.
+
+// EncAsymKXAlgo makes asymmetric encryption algorithm from symmetric encryption one and key exchange one.
+// It's secure, unless used algorithms are secure.
+// Since X25519 exists, it's preferred way to implement asymmetric encryption in application, when used along with
+// ChaCha or AES.
 type EncAsymKXAlgo struct {
 	EncSymmAlgo EncSymmAlgo
 	KXAlgo      KXAlgo
@@ -22,6 +28,12 @@ type EncAsymKXAlgo struct {
 	// RNG to use to generate ephemeral keys.
 	// One from context used if nil.
 	EphemeralRNG RNG
+
+	// For now block mode is NIY
+	//
+	// Makes encryptor behave like block one.
+	// Generates and embbeds new ephemeral key each time chunk is encrypted.
+	// BlockMode bool
 }
 
 func (algo *EncAsymKXAlgo) GetInfo() EncAlgoInfo {
@@ -35,6 +47,9 @@ func (algo *EncAsymKXAlgo) GetInfo() EncAlgoInfo {
 
 	if info.EncType == EncTypeBlock {
 		info.EncType = EncTypeChain
+		// since we are generating ephemeral key
+		// we can't prevent chunk reordering
+		// thus all guarantees about authentication must disappear
 		info.AuthMode = NotAuthenticatedEncAuthMode
 	} else if info.EncType == EncTypeStream {
 		info.EncType = EncTypeChain
