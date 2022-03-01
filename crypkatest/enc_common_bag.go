@@ -24,3 +24,19 @@ func (bag *EncKeyBag) EnsureValidSymm(algo crypka.EncSymmAlgo) (err error) {
 	}
 	return
 }
+
+func (bag *EncKeyBag) EnsureValidAsym(algo crypka.EncAsymAlgo) (err error) {
+	if bag.EncKey == nil {
+		bag.EncKey, _, err = algo.GenerateKeyPair(nil, bag.GenerateRNG)
+		if err != nil {
+			return
+		}
+	}
+	if bag.DecKey == nil {
+		_, bag.DecKey, err = algo.GenerateKeyPair(nil, bag.GenerateRNG)
+		if err != nil {
+			return
+		}
+	}
+	return
+}
