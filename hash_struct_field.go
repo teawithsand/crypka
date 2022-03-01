@@ -29,8 +29,26 @@ func (tf taggedFields) Less(i, j int) bool {
 //  at least in scope of single hashing
 //  that'd be useful for slices
 
-func computeTaggedFields(reflectStruct reflect.Value) (tf taggedFields, err error) {
+func computeTaggedFields(reflectStruct reflect.Value) (required bool, tf taggedFields, err error) {
+	// TODO(teawithsand): prettify implementation to use single for loop
+
+	var hasTags bool
 	length := reflectStruct.Type().NumField()
+	for i := 0; i < length; i++ {
+		f := reflectStruct.Type().Field(i)
+
+		tag := f.Tag.Get(hashTagName)
+		if len(tag) > 0 {
+			hasTags = true
+			break
+		}
+	}
+	if !hasTags {
+		required = false
+		return
+	}
+
+	required = true
 	tf = make(taggedFields, 0, length)
 
 	for i := 0; i < length; i++ {

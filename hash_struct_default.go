@@ -1,23 +1,27 @@
 package crypka
 
 import (
-	"errors"
+	"io"
 	"reflect"
 )
 
-const hashTagName = "shash"
-
-var ErrHashNotSupported = errors.New("crypka: hash of given type is not supported")
-
-type StructHasher interface {
-	HashStruct(ctx HashContext, res interface{}) (err error)
+type DefaultStructHashWriter struct {
 }
 
-type HashableNew interface {
-	HashSelf(w *HashableHelper) (err error)
-}
+func (dsh *DefaultStructHashWriter) WriteStruct(ctx HashContext, res interface{}, w io.Writer) (err error) {
+	inner := innerDefaultStructHasher{
+		ctx: ctx,
+		helper: &HashableHelper{
+			W: w,
+		},
+		fieldsCache: nil,
+	}
 
-type DefaultStructHasher struct {
+	err = inner.enterData(reflect.ValueOf(res))
+	if err != nil {
+		return
+	}
+	return
 }
 
 type innerDefaultStructHasher struct {
@@ -27,7 +31,7 @@ type innerDefaultStructHasher struct {
 	fieldsCache map[reflect.Type]taggedFields
 }
 
-func (dsh *innerDefaultStructHasher) hashToWriter(data reflect.Value) (err error) {
+func (dsh *innerDefaultStructHasher) enterData(data reflect.Value) (err error) {
 	hnew, ok := data.Interface().(HashableNew)
 	if ok {
 		err = hnew.HashSelf(dsh.helper)
@@ -55,7 +59,7 @@ func (dsh *innerDefaultStructHasher) hashToWriter(data reflect.Value) (err error
 		}
 
 		for i := 0; i < len; i++ {
-			err = dsh.hashToWriter(reflectData.Index(i))
+			err = dsh.enterData(reflectData.Index(i))
 			if err != nil {
 				return
 			}
@@ -69,7 +73,7 @@ func (dsh *innerDefaultStructHasher) hashToWriter(data reflect.Value) (err error
 		// note: this makes resizing array backwards-incompatible
 		len := reflectData.Elem().Len()
 		for i := 0; i < len; i++ {
-			err = dsh.hashToWriter(reflectData.Index(i))
+			err = dsh.enterData(reflectData.Index(i))
 			if err != nil {
 				return
 			}
@@ -125,39 +129,39 @@ func (dsh *innerDefaultStructHasher) hashToWriter(data reflect.Value) (err error
 		// especially because some FP numbers can be encoded in more than one binary representation
 		fallthrough
 	case reflect.Struct:
-		var hasTags bool
-		length := reflectData.Type().NumField()
-		for i := 0; i < length; i++ {
-			f := reflectData.Type().Field(i)
+		fields, cachedFieldsOk := dsh.fieldsCache[reflectData.Type()]
 
-			tag := f.Tag.Get(hashTagName)
-			if len(tag) > 0 {
-				hasTags = true
-				break
+		if !cachedFieldsOk {
+			if dsh.fieldsCache == nil {
+				dsh.fieldsCache = make(map[reflect.Type]taggedFields)
 			}
+
+			_, fields, err = computeTaggedFields(reflectData)
+			if err != nil {
+				return
+			}
+
+			dsh.fieldsCache[reflectData.Type()] = fields
 		}
 
 		err = dsh.helper.EnterStruct()
 		if err != nil {
 			return
 		}
-		if hasTags {
-			var fields taggedFields
-			fields, err = computeTaggedFields(reflectData)
-			if err != nil {
-				return
-			}
 
-			for _, f := range fields {
-				err = dsh.hashToWriter(reflectData.Field(f.index))
+		length := reflectData.NumField()
+
+		if len(fields) == 0 {
+			for i := 0; i < length; i++ {
+				fieldValue := reflectData.Field(i)
+				err = dsh.enterData(fieldValue)
 				if err != nil {
 					return
 				}
 			}
 		} else {
-			for i := 0; i < length; i++ {
-				fieldValue := reflectData.Field(i)
-				err = dsh.hashToWriter(fieldValue)
+			for _, f := range fields {
+				err = dsh.enterData(reflectData.Field(f.index))
 				if err != nil {
 					return
 				}
