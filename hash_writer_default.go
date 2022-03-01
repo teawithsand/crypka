@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// Note: this writer does not differnciate empty and nil slice, just like golang STL in functions like len.
 type DefaultStructHashWriter struct {
 }
 
@@ -31,16 +32,13 @@ type innerDefaultStructHasher struct {
 	fieldsCache map[reflect.Type]taggedFields
 }
 
-func (dsh *innerDefaultStructHasher) enterData(data reflect.Value) (err error) {
-	hnew, ok := data.Interface().(HashableNew)
+func (dsh *innerDefaultStructHasher) enterData(reflectData reflect.Value) (err error) {
+	hnew, ok := reflectData.Interface().(HashableNew)
 	if ok {
 		err = hnew.HashSelf(dsh.helper)
 		return
 	}
 
-	// for other types use walking with reflection
-
-	reflectData := reflect.ValueOf(data)
 	for reflectData.Kind() == reflect.Ptr {
 		// skip nil pointers
 		//  and pointers to pointer to nil
@@ -51,31 +49,50 @@ func (dsh *innerDefaultStructHasher) enterData(data reflect.Value) (err error) {
 	}
 
 	switch reflectData.Kind() {
-	case reflect.Slice:
-		len := reflectData.Elem().Len()
-		err = dsh.helper.EnterSlice(len)
+	case reflect.String:
+		err = dsh.helper.WriteString(reflectData.String())
 		if err != nil {
 			return
 		}
+	case reflect.Slice:
+		if reflectData.Type().Elem().Kind() == reflect.Uint8 {
+			err = dsh.helper.WriteByteSlice(reflectData.Bytes())
+			if err != nil {
+				return
+			}
+		} else {
+			len := reflectData.Len()
+			err = dsh.helper.EnterSlice(len)
+			if err != nil {
+				return
+			}
 
-		for i := 0; i < len; i++ {
-			err = dsh.enterData(reflectData.Index(i))
+			for i := 0; i < len; i++ {
+				err = dsh.enterData(reflectData.Index(i))
+				if err != nil {
+					return
+				}
+			}
+
+			err = dsh.helper.ExitSlice()
 			if err != nil {
 				return
 			}
 		}
-
-		err = dsh.helper.ExitSlice()
-		if err != nil {
-			return
-		}
 	case reflect.Array:
-		// note: this makes resizing array backwards-incompatible
-		len := reflectData.Elem().Len()
-		for i := 0; i < len; i++ {
-			err = dsh.enterData(reflectData.Index(i))
+		if reflectData.Type().Elem().Kind() == reflect.Uint8 {
+			err = dsh.helper.WriteConstBytes(reflectData.Slice(0, reflectData.Len()).Interface().([]byte))
 			if err != nil {
 				return
+			}
+		} else {
+			// note: this makes resizing array backwards-incompatible
+			len := reflectData.Len()
+			for i := 0; i < len; i++ {
+				err = dsh.enterData(reflectData.Index(i))
+				if err != nil {
+					return
+				}
 			}
 		}
 
@@ -99,6 +116,11 @@ func (dsh *innerDefaultStructHasher) enterData(data reflect.Value) (err error) {
 		if err != nil {
 			return
 		}
+	case reflect.Uint:
+		err = dsh.helper.WriteUint64(uint64(reflectData.Interface().(uint)))
+		if err != nil {
+			return
+		}
 	case reflect.Int8:
 		err = dsh.helper.WriteInt8(reflectData.Interface().(int8))
 		if err != nil {
@@ -119,15 +141,11 @@ func (dsh *innerDefaultStructHasher) enterData(data reflect.Value) (err error) {
 		if err != nil {
 			return
 		}
-	case reflect.Float32:
-		// since floats are quirky, for instance NaN value may be more than one NaN but comparing NaNs
-		// is a mess and some serializers support the only NaN, so it's not
-		// https://en.wikipedia.org/wiki/NaN (quiet nan/signaling nan)
-		//
-		// and in general floats are mess when comes to comparing them
-		// so I won't implement them.
-		// especially because some FP numbers can be encoded in more than one binary representation
-		fallthrough
+	case reflect.Int:
+		err = dsh.helper.WriteInt64(int64(reflectData.Interface().(int)))
+		if err != nil {
+			return
+		}
 	case reflect.Struct:
 		fields, cachedFieldsOk := dsh.fieldsCache[reflectData.Type()]
 
@@ -172,7 +190,15 @@ func (dsh *innerDefaultStructHasher) enterData(data reflect.Value) (err error) {
 		if err != nil {
 			return
 		}
-
+	case reflect.Float32:
+		// since floats are quirky, for instance NaN value may be more than one NaN but comparing NaNs
+		// is a mess and some serializers support the only NaN, so it's not
+		// https://en.wikipedia.org/wiki/NaN (quiet nan/signaling nan)
+		//
+		// and in general floats are mess when comes to comparing them
+		// so I won't implement them.
+		// especially because some FP numbers can be encoded in more than one binary representation
+		fallthrough
 	case reflect.Float64:
 		fallthrough
 	case reflect.Map:

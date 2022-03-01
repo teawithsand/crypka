@@ -55,10 +55,16 @@ func computeTaggedFields(reflectStruct reflect.Value) (required bool, tf taggedF
 		f := reflectStruct.Type().Field(i)
 		tag := f.Tag.Get(hashTagName)
 
+		if tag == "-" {
+			continue
+		}
+
 		var priority int64
-		priority, err = strconv.ParseInt(tag, 10, 32)
-		if err != nil {
-			return
+		if len(tag) > 0 {
+			priority, err = strconv.ParseInt(tag, 10, 32)
+			if err != nil {
+				return
+			}
 		}
 
 		tf = append(tf, taggedField{
