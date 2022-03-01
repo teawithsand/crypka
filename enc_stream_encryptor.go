@@ -5,9 +5,6 @@ func newCPKStreamEncryptor(inner Encryptor, desiredChunkBufferSize int) *cpkStre
 		inner:                  inner,
 		desiredChunkBufferSize: desiredChunkBufferSize,
 		chunkCoutner:           1,
-
-		// chunkSizeEncoding:    Byte4,
-		// chunkCounterEncoding: Byte4,
 	}
 
 	enc.chunkBuffer = make([]byte, enc.chunkCounterEncoding.MaxSize())

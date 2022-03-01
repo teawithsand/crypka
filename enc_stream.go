@@ -34,7 +34,7 @@ func (algo *CPKStreamSymmEncAlgo) GetInfo() EncAlgoInfo {
 
 	// Note: basic authentication is sufficient to prevent truncation, since
 	// the only thing we require to be trunc-authenticated is guarantee of valid finalization chunk
-	// which is provided either during finalization or eagerly during encryption
+	// which is provided either during finalization or eagerly during decryption
 	// in both cases, we are trunc authenticated.
 	if info.AuthMode.IsFinalizeAuthetnicated() || info.AuthMode.IsEagerAuthenticated() {
 		info.AuthMode.SetTruncAuthenticated(true)

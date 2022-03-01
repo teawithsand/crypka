@@ -5,9 +5,6 @@ func newCPKStreamDecryptor(inner Decryptor, maxChunkSize int) *cpkStreamDecrypto
 		inner:        inner,
 		maxChunkSize: maxChunkSize,
 		chunkCounter: 1,
-
-		// chunkSizeEncoding:    Byte4,
-		// chunkCounterEncoding: Byte4,
 	}
 
 	return enc
