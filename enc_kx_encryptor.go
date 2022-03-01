@@ -50,7 +50,7 @@ func (enc *encKxEncryptor) Encrypt(in, appendTo []byte) (res []byte, err error) 
 	}
 
 	var keyRNG RNG
-	if enc.algo.RNGAlgo != nil {
+	if enc.algo.RNGAlgo == nil {
 		keyRNG = bytes.NewReader(buf)
 	} else {
 		keyRNG, err = enc.algo.RNGAlgo.MakeRng(enc.ctx, buf)
@@ -75,6 +75,7 @@ func (enc *encKxEncryptor) Encrypt(in, appendTo []byte) (res []byte, err error) 
 	}
 
 	res, _ = enc.encoding.AppendToBuf(res, uint64(len(ephPubMar)))
+	res = append(res, ephPubMar...)
 
 	res, err = enc.wrappedEncryptor.Encrypt(in, res)
 	return

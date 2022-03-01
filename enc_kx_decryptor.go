@@ -1,6 +1,8 @@
 package crypka
 
-import "bytes"
+import (
+	"bytes"
+)
 
 type encKxDecryptor struct {
 	algo   *EncAsymKXAlgo
@@ -44,7 +46,7 @@ func (dec *encKxDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) 
 	}
 	in = in[valueSz:]
 
-	if dec.algo.MaxMarshaledEphemeralLength > 0 {
+	if dec.algo.MaxMarshaledEphemeralLength <= 0 {
 		if value > 1<<20 {
 			err = ErrEncStreamChunkTooBig
 			return
@@ -76,7 +78,7 @@ func (dec *encKxDecryptor) Decrypt(in, appendTo []byte) (res []byte, err error) 
 	}
 
 	var keyRNG RNG
-	if dec.algo.RNGAlgo != nil {
+	if dec.algo.RNGAlgo == nil {
 		keyRNG = bytes.NewReader(buf)
 	} else {
 		keyRNG, err = dec.algo.RNGAlgo.MakeRng(dec.ctx, buf)

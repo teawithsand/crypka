@@ -129,5 +129,10 @@ func (ek *encAsymKXAlgoDecKey) MarshalToWriter(w io.Writer) (err error) {
 }
 
 func (ek *encAsymKXAlgoDecKey) MakeDecryptor(ctx KeyContext) (dec Decryptor, err error) {
+	dec = &encKxDecryptor{
+		algo:   ek.algo,
+		secret: ek.secret,
+		ctx:    ctx,
+	}
 	return
 }
