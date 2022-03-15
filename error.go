@@ -23,3 +23,5 @@ var ErrKXInvalidDestination = errors.New("crypka: given KX destination buffer is
 var ErrKXUnsupportedPart = errors.New("crypka: specified public or secret KX part is not supported by this algorithm")
 
 var errIntEncodingError = errors.New("crypka: Filed to read encoded int")
+
+var ErrPasswordHashInvalid = errors.New("crypka: password hash is not valid")

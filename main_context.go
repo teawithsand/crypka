@@ -9,6 +9,7 @@ type KeyGenerationContext = *Context
 type KeyParseContext = *Context
 type RNGGenerationContext = *Context
 type HashContext = *Context
+type PasswordHashContext = *Context
 
 type AnyContext = *Context
 
