@@ -1,18 +1,6 @@
-//go:build go1.18
-// +build go1.18
-
 package crypkatest
 
-import (
-	"bytes"
-	"crypto"
-	"encoding/binary"
-	"reflect"
-	"testing"
-
-	"github.com/teawithsand/crypka"
-)
-
+/*
 func (tester *HashableTester) Fuzz(f *testing.F) {
 	hashAlgo := crypka.HashSignAlgorithm{
 		Hash: crypto.SHA1,
@@ -100,3 +88,4 @@ func (tester *HashableTester) Fuzz(f *testing.F) {
 
 	f.Fuzz(fuzz)
 }
+*/

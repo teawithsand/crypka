@@ -155,5 +155,3 @@ func (tester *SignSymmTester) Test(t *testing.T) {
 func (tester SignSymmTester) Benchmark(b *testing.B) {
 	panic("NIY")
 }
-
-// TODO(teawithsand): when go 1.18 will be released, add fuzz functions here

@@ -14,3 +14,11 @@ func TestKX_X25519(t *testing.T) {
 
 	tester.Test(t)
 }
+
+func FuzzKX_X25519_RandomExchange(f *testing.F) {
+	tester := crypkatest.KXTester{
+		Algo: &crypka.X25519KXAlgo{},
+	}
+
+	tester.Fuzz(f, crypkatest.KXFuzzMethodRandomExchange)
+}

@@ -2,11 +2,11 @@ package crypkatest
 
 import (
 	//  so that sha1 is available, since it's default compress function
+
 	_ "crypto/sha1"
 )
 
 /*
-
 type HashableTester struct {
 	Deserialize func(data []byte) (res crypka.Hashable, err error)
 	Comparator  func(a, b interface{}) bool
@@ -92,5 +92,4 @@ func (tester HashableTester) Test(t *testing.T) {
 		}
 	})
 }
-
 */

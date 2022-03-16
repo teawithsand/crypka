@@ -20,3 +20,33 @@ func TestEnc_Stream_WithXorEncryptor(t *testing.T) {
 
 	tester.Test(t)
 }
+
+func FuzzEnc_Stream_WithBlank_Encryptor(f *testing.F) {
+	tester := crypkatest.EncSymmTester{
+		Algo: &crypka.CPKStreamSymmEncAlgo{
+			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
+		},
+	}
+
+	tester.Fuzz(f, crypkatest.EncSymmFuzzEncryptorChunks)
+}
+
+func FuzzEnc_Stream_WithBlank_Decryptor(f *testing.F) {
+	tester := crypkatest.EncSymmTester{
+		Algo: &crypka.CPKStreamSymmEncAlgo{
+			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
+		},
+	}
+
+	tester.Fuzz(f, crypkatest.EncSymmFuzzDecryptorChunks)
+}
+
+func FuzzEnc_Stream_WithBlank_EncryptDecrypt(f *testing.F) {
+	tester := crypkatest.EncSymmTester{
+		Algo: &crypka.CPKStreamSymmEncAlgo{
+			EncSymmAlgo: &crypka.BlankEncSymmAlgo{},
+		},
+	}
+
+	tester.Fuzz(f, crypkatest.EncSymmFuzzEncryptDecryptChunks)
+}
