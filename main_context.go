@@ -32,8 +32,12 @@ func ContextGetRNG(ctx *Context) RNG {
 }
 
 // Returns given RNG or one from context in case given one was nil.
+// Returns default RNG in case provided one was not set.
 func FallbackContextGetRNG(ctx *Context, rng RNG) RNG {
 	if rng != nil {
+		if rng == nil {
+			return rand.Reader
+		}
 		return rng
 	}
 

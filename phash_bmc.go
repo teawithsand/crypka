@@ -35,8 +35,10 @@ func parseAlgo(encoded []byte) (algo []byte, err error) {
 }
 
 type bmcParser struct {
-	R     io.ByteReader
-	Value []byte
+	R           io.ByteReader
+	Value       []byte
+	state       int
+	cachedError error
 }
 
 func (p *bmcParser) Get() []byte {
@@ -44,24 +46,31 @@ func (p *bmcParser) Get() []byte {
 }
 
 func (p *bmcParser) Next() (err error) {
+	if p.cachedError != nil {
+		err = p.cachedError
+		return
+	}
 	p.Value = nil
 
-	state := 0
 	for {
 		var b byte
 		b, err = p.R.ReadByte()
-		if err != nil {
+		if len(p.Value) > 0 && err != nil {
+			p.cachedError = err
+			err = nil
+			return
+		} else if err != nil {
 			return
 		}
 
-		if state == 0 {
+		if p.state == 0 {
 			if b != '$' {
 				err = ErrPasswordHashParseFiled
 				return
 			}
 
-			state = 1
-		} else if state == 1 {
+			p.state = 1
+		} else if p.state == 1 {
 			if b == '$' {
 				break
 			} else {
@@ -74,9 +83,10 @@ func (p *bmcParser) Next() (err error) {
 }
 
 type argParser struct {
-	R     io.ByteReader
-	Name  []byte
-	Value []byte
+	R           io.ByteReader
+	Name        []byte
+	Value       []byte
+	cachedError error
 }
 
 func (p *argParser) Get() []byte {
@@ -84,6 +94,11 @@ func (p *argParser) Get() []byte {
 }
 
 func (p *argParser) Next() (err error) {
+	if p.cachedError != nil {
+		err = p.cachedError
+		return
+	}
+
 	p.Value = nil
 	p.Name = nil
 
@@ -91,8 +106,13 @@ func (p *argParser) Next() (err error) {
 	for {
 		var b byte
 		b, err = p.R.ReadByte()
-		if errors.Is(err, io.EOF) && state == 1 {
+		if errors.Is(err, io.EOF) && state == 0 {
 			err = io.ErrUnexpectedEOF
+		}
+
+		if len(p.Value) > 0 && err != nil {
+			p.cachedError = err
+			err = nil
 			return
 		} else if err != nil {
 			return
