@@ -24,4 +24,6 @@ var ErrKXUnsupportedPart = errors.New("crypka: specified public or secret KX par
 
 var errIntEncodingError = errors.New("crypka: Filed to read encoded int")
 
-var ErrPasswordHashInvalid = errors.New("crypka: password hash is not valid")
+var ErrPasswordHashInvalid = errors.New("crypka: password hash does not match password given")
+var ErrPasswordHashParseFiled = errors.New("crypka: filed to parse password hash")
+var ErrPasswordHashUnknownAlgo = errors.New("crypka: given password hash is encoded using unsupported algorithm")
